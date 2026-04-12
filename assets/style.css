@@ -1,0 +1,833 @@
+/* ══════════════════════════════════════════════════════════
+   Transfer Window Manager — Claude-Inspired Grey Theme
+   ══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+    /* Core greys */
+    --bg-primary: #1a1a1e;
+    --bg-secondary: #222226;
+    --bg-tertiary: #2a2a2f;
+    --bg-elevated: #303036;
+    --bg-hover: #38383f;
+    --bg-active: #404048;
+    
+    /* Surface */
+    --surface: #28282e;
+    --surface-hover: #32323a;
+    --surface-border: rgba(255, 255, 255, 0.06);
+    --surface-border-hover: rgba(255, 255, 255, 0.12);
+    
+    /* Text */
+    --text-primary: #ececf0;
+    --text-secondary: #a0a0aa;
+    --text-tertiary: #6b6b76;
+    --text-placeholder: #55555f;
+    
+    /* Accents */
+    --accent: #d4845a;
+    --accent-hover: #e0956b;
+    --accent-muted: rgba(212, 132, 90, 0.15);
+    --accent-text: #e8a882;
+    
+    /* Semantic */
+    --success: #4ade80;
+    --success-muted: rgba(74, 222, 128, 0.12);
+    --warning: #fbbf24;
+    --warning-muted: rgba(251, 191, 36, 0.12);
+    --danger: #f87171;
+    --danger-muted: rgba(248, 113, 113, 0.12);
+    --info: #60a5fa;
+    --info-muted: rgba(96, 165, 250, 0.12);
+    
+    /* Pitch */
+    --pitch-bg: #2d5a3a;
+    --pitch-light: #347044;
+    --pitch-line: rgba(255, 255, 255, 0.18);
+    
+    /* Gold rankings */
+    --gold: #fbbf24;
+    --silver: #94a3b8;
+    --bronze: #d97706;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+    
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    
+    /* Transition */
+    --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Reset ── */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Header ── */
+.header-bar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--surface-border);
+    padding: 0 28px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.app-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.app-title-icon {
+    font-size: 20px;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.header-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--surface-border);
+}
+
+.header-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+}
+
+.header-stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.header-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.budget-ok { color: var(--success) !important; }
+.budget-warn { color: var(--warning) !important; }
+.budget-over { color: var(--danger) !important; }
+
+/* ── Method Pills ── */
+.method-pills {
+    display: flex;
+    gap: 2px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+}
+
+/* ── Main Layout ── */
+.main-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px 28px;
+    max-width: 1500px;
+    margin: 0 auto;
+}
+
+/* ── Card Panels ── */
+.panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color var(--transition);
+}
+
+.panel:hover {
+    border-color: var(--surface-border-hover);
+}
+
+.panel-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.panel-body {
+    padding: 18px;
+}
+
+/* ── Football Pitch ── */
+.pitch-container {
+    width: 100%;
+    aspect-ratio: 68/100;
+    max-height: 500px;
+    background: linear-gradient(180deg, var(--pitch-bg) 0%, var(--pitch-light) 50%, var(--pitch-bg) 100%);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Pitch stripes */
+.pitch-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: var(--pitch-line);
+}
+
+.pitch-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 70px;
+    height: 70px;
+    border: 1px solid var(--pitch-line);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.pitch-center-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: var(--pitch-line);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.pitch-penalty-top {
+    position: absolute;
+    top: 3%;
+    left: 27%;
+    width: 46%;
+    height: 13%;
+    border: 1px solid var(--pitch-line);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+}
+
+.pitch-penalty-bottom {
+    position: absolute;
+    bottom: 3%;
+    left: 27%;
+    width: 46%;
+    height: 13%;
+    border: 1px solid var(--pitch-line);
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+}
+
+/* ── Position Nodes ── */
+.position-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    z-index: 10;
+    backdrop-filter: blur(6px);
+}
+
+.position-node:hover {
+    transform: translate(-50%, -50%) scale(1.12);
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.position-node.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-muted), 0 0 16px rgba(212, 132, 90, 0.3);
+    background: rgba(212, 132, 90, 0.15);
+    transform: translate(-50%, -50%) scale(1.08);
+}
+
+.position-node.filled {
+    border-color: var(--success);
+    background: rgba(74, 222, 128, 0.1);
+}
+
+.position-node.filled.selected {
+    border-color: var(--accent);
+    background: rgba(212, 132, 90, 0.15);
+}
+
+.position-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    line-height: 1.1;
+    pointer-events: none;
+}
+
+.position-player-name {
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+}
+
+/* ── Ranking Table ── */
+.ranking-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.ranking-table thead th {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--surface-border);
+    position: sticky;
+    top: 0;
+    background: var(--bg-secondary);
+    z-index: 5;
+}
+
+.ranking-table tbody tr {
+    transition: background var(--transition);
+    cursor: pointer;
+}
+
+.ranking-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.ranking-table tbody td {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--surface-border);
+    vertical-align: middle;
+}
+
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-full);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.rank-1 { background: var(--gold); color: #000; }
+.rank-2 { background: var(--silver); color: #000; }
+.rank-3 { background: var(--bronze); color: #fff; }
+.rank-other { background: var(--bg-elevated); color: var(--text-secondary); }
+
+.score-bar {
+    height: 5px;
+    border-radius: 3px;
+    background: var(--bg-elevated);
+    overflow: hidden;
+    min-width: 60px;
+}
+
+.score-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+    transition: width 0.4s ease;
+}
+
+.market-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 600;
+}
+
+.player-name-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.team-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+}
+
+/* ── Weight Panel ── */
+.weight-panel {
+    grid-column: 1 / -1;
+}
+
+.weight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+
+.weight-item {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    transition: border-color var(--transition);
+}
+
+.weight-item:hover {
+    border-color: var(--surface-border-hover);
+}
+
+.weight-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weight-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-text);
+    font-weight: 600;
+}
+
+/* ── Budget Section ── */
+.budget-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.budget-input-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.budget-currency {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+}
+
+.budget-slider-container {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.budget-slider-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ── Squad Summary ── */
+.squad-summary {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--surface-border);
+    align-items: center;
+}
+
+.squad-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.squad-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.squad-stat-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+/* ── Empty State ── */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    opacity: 0.35;
+}
+
+.empty-state-text {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--surface-border-hover);
+    border-radius: var(--radius-sm);
+    padding: 6px 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-remove {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger-muted);
+    border-radius: var(--radius-sm);
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-remove:hover {
+    background: var(--danger-muted);
+}
+
+/* ── Dash Overrides ── */
+.Select-control,
+.Select-menu-outer {
+    background: var(--bg-tertiary) !important;
+    border-color: var(--surface-border-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+.Select-value-label,
+.Select-placeholder {
+    color: var(--text-primary) !important;
+}
+
+.Select-option {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.Select-option.is-focused {
+    background: var(--bg-hover) !important;
+}
+
+.dash-dropdown .Select-control {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--surface-border-hover) !important;
+    border-radius: var(--radius-sm) !important;
+    min-height: 36px;
+}
+
+.dash-dropdown .Select-value-label,
+.dash-dropdown .Select-placeholder {
+    color: var(--text-primary) !important;
+}
+
+.dash-dropdown .Select-menu-outer {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--surface-border-hover) !important;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+}
+
+.dash-dropdown .VirtualizedSelectOption {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.dash-dropdown .VirtualizedSelectFocusedOption {
+    background: var(--bg-hover) !important;
+}
+
+input[type="number"],
+input[type="text"] {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--surface-border-hover) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text-primary) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 14px !important;
+    padding: 6px 10px !important;
+    transition: border-color var(--transition);
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus {
+    border-color: var(--accent) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px var(--accent-muted) !important;
+}
+
+/* Dash slider */
+.rc-slider-track {
+    background: var(--accent) !important;
+    height: 4px !important;
+    border-radius: 2px !important;
+}
+
+.rc-slider-handle {
+    border: 2px solid var(--accent) !important;
+    background: var(--bg-secondary) !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-top: -6px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+    transition: box-shadow var(--transition), border-color var(--transition) !important;
+}
+
+.rc-slider-handle:hover,
+.rc-slider-handle:active {
+    border-color: var(--accent-hover) !important;
+    box-shadow: 0 0 0 4px var(--accent-muted), 0 1px 4px rgba(0,0,0,0.4) !important;
+}
+
+.rc-slider-rail {
+    background: var(--bg-elevated) !important;
+    height: 4px !important;
+    border-radius: 2px !important;
+}
+
+.rc-slider-mark-text {
+    color: var(--text-tertiary) !important;
+    font-size: 10px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+.rc-slider-dot {
+    border-color: var(--bg-elevated) !important;
+    background: var(--bg-elevated) !important;
+}
+
+.rc-slider-dot-active {
+    border-color: var(--accent) !important;
+    background: var(--accent) !important;
+}
+
+/* Radio */
+.dash-radio-items label {
+    color: var(--text-primary) !important;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+/* Checklist */
+.dash-checklist label {
+    color: var(--text-secondary) !important;
+    font-size: 12px;
+    padding: 3px 6px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg-elevated);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+    .main-container {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+
+    .budget-panel-wrapper {
+        padding: 0 16px;
+    }
+
+    .header-bar {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 12px 16px;
+        gap: 10px;
+    }
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.25s ease forwards;
+}
+
+/* ── Budget Panel Wrapper ── */
+.budget-panel-wrapper {
+    max-width: 1500px;
+    margin: 20px auto 0;
+    padding: 0 28px;
+}
+
+/* Budget slider section — sits below the header so marks don't distort alignment */
+.budget-slider-section {
+    padding: 10px 18px 2px 18px;
+}
+
+/* Budget progress bar row */
+.budget-bar-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 18px 14px 18px;
+}
+
+.budget-percent-text {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', monospace;
+    min-width: 40px;
+    text-align: right;
+    font-weight: 500;
+}
+
+/* Budget bar */
+.budget-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg-elevated);
+    overflow: hidden;
+    flex: 1;
+    min-width: 120px;
+}
+
+.budget-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease, background 0.3s ease;
+}
+
+.budget-fill-ok { background: var(--success); }
+.budget-fill-warn { background: var(--warning); }
+.budget-fill-over { background: var(--danger); }

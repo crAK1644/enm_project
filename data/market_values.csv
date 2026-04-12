@@ -1,0 +1,525 @@
+player_id,player_name_tm,player_name_csv,web_name,market_value_eur_m,market_value_str,team_tm,position,match_score
+736,Gianluigi Donnarumma,Gianluigi Donnarumma,Donnarumma,45.0,€45.00m,Manchester City,Goalkeeper,1.0
+182,James Trafford,James Trafford,Trafford,25.0,€25.00m,Manchester City,Goalkeeper,1.0
+401,Marcus Bettinelli,Marcus Bettinelli,Bettinelli,0.5,€500k,Manchester City,Goalkeeper,1.0
+403,Josko Gvardiol,Joško Gvardiol,Gvardiol,70.0,€70.00m,Manchester City,Defender,0.929
+260,Marc Guéhi,Marc Guéhi,Guéhi,65.0,€65.00m,Manchester City,Defender,1.0
+571,Rúben Dias,Ben Davies,Davies,60.0,€60.00m,Manchester City,Defender,0.7
+406,Abdukodir Khusanov,Abdukodir Khusanov,Khusanov,35.0,€35.00m,Manchester City,Defender,1.0
+409,John Stones,John Stones,Stones,15.0,€15.00m,Manchester City,Defender,1.0
+405,Nathan Aké,Nathan Aké,Aké,15.0,€15.00m,Manchester City,Defender,1.0
+794,Max Alleyne,Max Alleyne,Alleyne,8.0,€8.00m,Manchester City,Defender,1.0
+411,Nico O'Reilly,Nico O'Reilly,O'Reilly,50.0,€50.00m,Manchester City,Defender,1.0
+402,Rayan Aït-Nouri,Rayan Aït-Nouri,Aït-Nouri,40.0,€40.00m,Manchester City,Defender,1.0
+407,Matheus Nunes,Matheus Nunes,Matheus N.,45.0,€45.00m,Manchester City,Defender,1.0
+410,Rico Lewis,Rico Lewis,Lewis,32.0,€32.00m,Manchester City,Defender,1.0
+421,Rodri,Rodrigo 'Rodri' Hernandez Cascante,Rodrigo,65.0,€65.00m,Manchester City,Midfielder,0.833
+423,Nico González,Nico González Iglesias,N.Gonzalez,45.0,€45.00m,Manchester City,Midfielder,0.743
+427,Tijjani Reijnders,Tijjani Reijnders,Reijnders,60.0,€60.00m,Manchester City,Midfielder,1.0
+428,Sverre Nypan,Sverre Nypan,Nypan,15.0,€15.00m,Manchester City,Midfielder,1.0
+422,Mateo Kovacic,Mateo Kovačić,Kovačić,12.0,€12.00m,Manchester City,Midfielder,0.846
+414,Phil Foden,Phil Foden,Foden,80.0,€80.00m,Manchester City,Midfielder,1.0
+417,Rayan Cherki,Rayan Cherki,Cherki,65.0,€65.00m,Manchester City,Midfielder,1.0
+416,Bernardo Silva,Bernardo Mota Veiga de Carvalho e Silva,Bernardo,27.0,€27.00m,Manchester City,Midfielder,0.727
+418,Jérémy Doku,Jérémy Doku,Doku,65.0,€65.00m,Manchester City,Midfielder,1.0
+415,Savinho,Sávio Moreira de Oliveira,Savinho,40.0,€40.00m,Manchester City,Midfielder,1.0
+82,Antoine Semenyo,Antoine Semenyo,Semenyo,75.0,€75.00m,Manchester City,Midfielder,1.0
+430,Erling Haaland,Erling Haaland,Haaland,200.0,€200.00m,Manchester City,Forward,1.0
+413,Omar Marmoush,Omar Marmoush,Marmoush,60.0,€60.00m,Manchester City,Midfielder,1.0
+1,David Raya,David Raya Martín,Raya,35.0,€35.00m,Arsenal FC,Goalkeeper,0.741
+2,Kepa Arrizabalaga,Kepa Arrizabalaga Revuelta,Arrizabalaga,7.0,€7.00m,Arsenal FC,Goalkeeper,0.828
+6,William Saliba,William Saliba,Saliba,90.0,€90.00m,Arsenal FC,Defender,1.0
+5,Gabriel,Gabriel dos Santos Magalhães,Gabriel,75.0,€75.00m,Arsenal FC,Defender,1.0
+725,Piero Hincapié,Piero Hincapié,Hincapie,50.0,€50.00m,Arsenal FC,Defender,1.0
+662,Cristhian Mosquera,Cristhian Mosquera,Mosquera,35.0,€35.00m,Arsenal FC,Defender,1.0
+7,Riccardo Calafiori,Riccardo Calafiori,Calafiori,50.0,€50.00m,Arsenal FC,Defender,1.0
+10,Myles Lewis-Skelly,Myles Lewis-Skelly,Lewis-Skelly,35.0,€35.00m,Arsenal FC,Defender,1.0
+8,Jurriën Timber,Jurriën Timber,J.Timber,70.0,€70.00m,Arsenal FC,Defender,1.0
+11,Ben White,Benjamin White,White,30.0,€30.00m,Arsenal FC,Defender,0.783
+26,Martín Zubimendi,Martín Zubimendi Ibáñez,Zubimendi,80.0,€80.00m,Arsenal FC,Midfielder,0.821
+24,Christian Nørgaard,Christian Nørgaard,Nørgaard,7.0,€7.00m,Arsenal FC,Midfielder,1.0
+21,Declan Rice,Declan Rice,Rice,120.0,€120.00m,Arsenal FC,Midfielder,1.0
+22,Mikel Merino,Mikel Merino Zazón,Merino,30.0,€30.00m,Arsenal FC,Midfielder,0.8
+17,Martin Ødegaard,Martin Ødegaard,Ødegaard,65.0,€65.00m,Arsenal FC,Midfielder,1.0
+266,Eberechi Eze,Eberechi Eze,Eze,60.0,€60.00m,Arsenal FC,Midfielder,1.0
+19,Gabriel Martinelli,Gabriel Martinelli Silva,Martinelli,45.0,€45.00m,Arsenal FC,Midfielder,0.857
+20,Leandro Trossard,Leandro Trossard,Trossard,20.0,€20.00m,Arsenal FC,Midfielder,1.0
+16,Bukayo Saka,Bukayo Saka,Saka,120.0,€120.00m,Arsenal FC,Midfielder,1.0
+18,Noni Madueke,Noni Madueke,Madueke,50.0,€50.00m,Arsenal FC,Midfielder,1.0
+700,Max Dowman,Max Dowman,Dowman,20.0,€20.00m,Arsenal FC,Midfielder,1.0
+666,Viktor Gyökeres,Viktor Gyökeres,Gyökeres,65.0,€65.00m,Arsenal FC,Forward,1.0
+30,Kai Havertz,Kai Havertz,Havertz,50.0,€50.00m,Arsenal FC,Forward,1.0
+5,Gabriel Jesus,Gabriel dos Santos Magalhães,Gabriel,20.0,€20.00m,Arsenal FC,Defender,0.7
+220,Robert Sánchez,Robert Lynch Sánchez,Sánchez,22.0,€22.00m,Chelsea FC,Goalkeeper,0.824
+221,Filip Jørgensen,Filip Jörgensen,Jörgensen,15.0,€15.00m,Chelsea FC,Goalkeeper,0.933
+223,Gabriel Slonina,Gabriel Słonina,Slonina,3.5,€3.50m,Chelsea FC,Goalkeeper,0.933
+803,Teddy Sharman-Lowe,Teddy Sharman-Lowe,Sharman-Lowe,0.55,€550k,Chelsea FC,Goalkeeper,1.0
+227,Levi Colwill,Levi Samuels Colwill,Colwill,50.0,€50.00m,Chelsea FC,Defender,0.75
+226,Trevoh Chalobah,Trevoh Chalobah,Chalobah,40.0,€40.00m,Chelsea FC,Defender,1.0
+230,Wesley Fofana,Wesley Fofana,Fofana,28.0,€28.00m,Chelsea FC,Defender,1.0
+231,Mamadou Sarr,Mamadou Sarr,M.Sarr,25.0,€25.00m,Chelsea FC,Defender,1.0
+232,Tosin Adarabioyo,Tosin Adarabioyo,Tosin,18.0,€18.00m,Chelsea FC,Defender,1.0
+229,Benoît Badiashile,Benoît Badiashile Mukinayi,B.Badiashile,18.0,€18.00m,Chelsea FC,Defender,0.791
+224,Marc Cucurella,Marc Cucurella Saseta,Cucurella,50.0,€50.00m,Chelsea FC,Defender,0.8
+672,Jorrel Hato,Jorrel Hato,Hato,35.0,€35.00m,Chelsea FC,Defender,1.0
+49,Caleb Wiley,Leon Bailey,Bailey,8.0,€8.00m,Chelsea FC,Midfielder,0.636
+225,Reece James,Reece James,James,60.0,€60.00m,Chelsea FC,Defender,1.0
+228,Malo Gusto,Malo Gusto,Gusto,35.0,€35.00m,Chelsea FC,Defender,1.0
+233,Josh Acheampong,Josh Acheampong,Acheampong,25.0,€25.00m,Chelsea FC,Defender,1.0
+241,Moisés Caicedo,Moisés Caicedo Corozo,Caicedo,110.0,€110.00m,Chelsea FC,Midfielder,0.8
+244,Roméo Lavia,Roméo Lavia,Lavia,25.0,€25.00m,Chelsea FC,Midfielder,1.0
+247,Dário Essugo,Dário Luís Essugo,D.Essugo,17.0,€17.00m,Chelsea FC,Midfielder,0.828
+237,Enzo Fernández,Enzo Fernández,Enzo,90.0,€90.00m,Chelsea FC,Midfielder,1.0
+246,Andrey Santos,Andrey Nascimento dos Santos,Andrey Santos,45.0,€45.00m,Chelsea FC,Midfielder,1.0
+235,Cole Palmer,Cole Palmer,Palmer,110.0,€110.00m,Chelsea FC,Midfielder,1.0
+453,Alejandro Garnacho,Alejandro Garnacho Ferreyra,Garnacho,40.0,€40.00m,Chelsea FC,Midfielder,0.8
+239,Jamie Gittens,Jamie Bynoe-Gittens,Gittens,35.0,€35.00m,Chelsea FC,Midfielder,0.812
+238,Estêvão,Estêvão Almeida de Oliveira Gonçalves,Estêvão,80.0,€80.00m,Chelsea FC,Midfielder,1.0
+236,Pedro Neto,Pedro Lomba Neto,Neto,60.0,€60.00m,Chelsea FC,Midfielder,0.769
+249,João Pedro,João Pedro Junqueira de Jesus,João Pedro,75.0,€75.00m,Chelsea FC,Forward,1.0
+250,Liam Delap,Liam Delap,Delap,32.0,€32.00m,Chelsea FC,Forward,1.0
+252,Marc Guiu,Marc Guiu Paz,Marc Guiu,12.0,€12.00m,Chelsea FC,Forward,1.0
+367,Giorgi Mamardashvili,Giorgi Mamardashvili,Mamardashvili,28.0,€28.00m,Liverpool FC,Goalkeeper,1.0
+792,Alisson,Alysson Edward Franco da Rocha dos Santos,Alysson,17.0,€17.00m,Liverpool FC,Midfielder,0.857
+369,Freddie Woodman,Freddie Woodman,Woodman,3.0,€3.00m,Liverpool FC,Goalkeeper,1.0
+487,Harvey Davies,Harvey Barnes,Barnes,0.5,€500k,Liverpool FC,Midfielder,0.769
+374,Ibrahima Konaté,Ibrahima Konaté,Konaté,50.0,€50.00m,Liverpool FC,Defender,1.0
+692,Giovanni Leoni,Giovanni Leoni,Leoni,25.0,€25.00m,Liverpool FC,Defender,1.0
+373,Virgil van Dijk,Virgil van Dijk,Virgil,18.0,€18.00m,Liverpool FC,Defender,1.0
+376,Joe Gomez,Joe Gomez,Gomez,15.0,€15.00m,Liverpool FC,Defender,1.0
+379,Rhys Williams,Rhys Williams,R.Williams,0.5,€500k,Liverpool FC,Defender,1.0
+371,Milos Kerkez,Milos Kerkez,Kerkez,40.0,€40.00m,Liverpool FC,Defender,1.0
+372,Andrew Robertson,Andrew Robertson,Robertson,10.0,€10.00m,Liverpool FC,Defender,1.0
+370,Jeremie Frimpong,Jeremie Frimpong,Frimpong,35.0,€35.00m,Liverpool FC,Defender,1.0
+375,Conor Bradley,Conor Bradley,Bradley,30.0,€30.00m,Liverpool FC,Defender,1.0
+380,Calvin Ramsay,Calvin Ramsay,Ramsay,1.5,€1.50m,Liverpool FC,Defender,1.0
+390,Ryan Gravenberch,Ryan Gravenberch,Gravenberch,90.0,€90.00m,Liverpool FC,Midfielder,1.0
+392,Wataru Endo,Endo Wataru,Endo,5.0,€5.00m,Liverpool FC,Midfielder,0.706
+393,Stefan Bajcetic,Stefan Bajčetić Maquieira,Bajcetic,5.0,€5.00m,Liverpool FC,Midfielder,0.696
+386,Alexis Mac Allister,Alexis Mac Allister,Mac Allister,80.0,€80.00m,Liverpool FC,Midfielder,1.0
+388,Curtis Jones,Curtis Jones,C.Jones,35.0,€35.00m,Liverpool FC,Midfielder,1.0
+396,Trey Nyoni,Trey Nyoni,Nyoni,6.0,€6.00m,Liverpool FC,Midfielder,1.0
+382,Florian Wirtz,Florian Wirtz,Wirtz,110.0,€110.00m,Liverpool FC,Midfielder,1.0
+387,Dominik Szoboszlai,Dominik Szoboszlai,Szoboszlai,100.0,€100.00m,Liverpool FC,Midfielder,1.0
+384,Cody Gakpo,Cody Gakpo,Gakpo,65.0,€65.00m,Liverpool FC,Midfielder,1.0
+686,Rio Ngumoha,Rio Ngumoha,Ngumoha,20.0,€20.00m,Liverpool FC,Midfielder,1.0
+381,Mohamed Salah,Mohamed Salah,M.Salah,30.0,€30.00m,Liverpool FC,Midfielder,1.0
+385,Federico Chiesa,Federico Chiesa,Chiesa,15.0,€15.00m,Liverpool FC,Midfielder,1.0
+499,Alexander Isak,Alexander Isak,Isak,100.0,€100.00m,Liverpool FC,Forward,1.0
+661,Hugo Ekitiké,Hugo Ekitiké,Ekitiké,90.0,€90.00m,Liverpool FC,Forward,1.0
+565,Guglielmo Vicario,Guglielmo Vicario,Vicario,23.0,€23.00m,Tottenham Hotspur,Goalkeeper,1.0
+567,Antonín Kinský,Antonín Kinský,Kinsky,13.0,€13.00m,Tottenham Hotspur,Goalkeeper,1.0
+566,Brandon Austin,Brandon Austin,Austin,0.5,€500k,Tottenham Hotspur,Goalkeeper,1.0
+575,Micky van de Ven,Micky van de Ven,Van de Ven,65.0,€65.00m,Tottenham Hotspur,Defender,1.0
+569,Cristian Romero,Cristian Romero,Romero,50.0,€50.00m,Tottenham Hotspur,Defender,1.0
+572,Radu Drăgușin,Radu Drăgușin,Dragusin,20.0,€20.00m,Tottenham Hotspur,Defender,1.0
+570,Kevin Danso,Kevin Danso,Danso,20.0,€20.00m,Tottenham Hotspur,Defender,1.0
+571,Ben Davies,Ben Davies,Davies,5.0,€5.00m,Tottenham Hotspur,Defender,1.0
+574,Destiny Udogie,Destiny Udogie,Udogie,35.0,€35.00m,Tottenham Hotspur,Defender,1.0
+573,Djed Spence,Djed Spence,Spence,30.0,€30.00m,Tottenham Hotspur,Defender,1.0
+804,Souza,João Victor de Souza Menezes,Souza,12.0,€12.00m,Tottenham Hotspur,Defender,1.0
+568,Pedro Porro,Pedro Porro Sauceda,Pedro Porro,40.0,€40.00m,Tottenham Hotspur,Defender,1.0
+585,Rodrigo Bentancur,Rodrigo Bentancur,Bentancur,22.0,€22.00m,Tottenham Hotspur,Midfielder,1.0
+673,João Palhinha,João Maria Lobo Alves Palhares Costa Palhinha Gonçalves,J.Palhinha,18.0,€18.00m,Tottenham Hotspur,Midfielder,0.783
+587,Yves Bissouma,Yves Bissouma,Bissouma,12.0,€12.00m,Tottenham Hotspur,Midfielder,1.0
+586,Lucas Bergvall,Lucas Bergvall,Bergvall,40.0,€40.00m,Tottenham Hotspur,Midfielder,1.0
+591,Archie Gray,Archie Gray,Gray,35.0,€35.00m,Tottenham Hotspur,Midfielder,1.0
+796,Conor Gallagher,Conor Gallagher,Gallagher,35.0,€35.00m,Tottenham Hotspur,Midfielder,1.0
+593,Pape Matar Sarr,Pape Matar Sarr,P.M.Sarr,32.0,€32.00m,Tottenham Hotspur,Midfielder,1.0
+717,Xavi Simons,Xavi Simons,Xavi,50.0,€50.00m,Tottenham Hotspur,Midfielder,1.0
+583,Dejan Kulusevski,Dejan Kulusevski,Kulusevski,35.0,€35.00m,Tottenham Hotspur,Midfielder,1.0
+581,James Maddison,James Maddison,Maddison,25.0,€25.00m,Tottenham Hotspur,Midfielder,1.0
+588,Wilson Odobert,Wilson Odobert,Odobert,20.0,€20.00m,Tottenham Hotspur,Midfielder,1.0
+582,Mohammed Kudus,Mohammed Kudus,Kudus,55.0,€55.00m,Tottenham Hotspur,Midfielder,1.0
+596,Dominic Solanke,Dominic Solanke-Mitchell,Solanke,35.0,€35.00m,Tottenham Hotspur,Forward,0.769
+597,Richarlison,Richarlison de Andrade,Richarlison,28.0,€28.00m,Tottenham Hotspur,Forward,1.0
+584,Mathys Tel,Mathys Tel,Tel,25.0,€25.00m,Tottenham Hotspur,Midfielder,1.0
+726,Randal Kolo Muani,Randal Kolo Muani,Kolo Muani,22.0,€22.00m,Tottenham Hotspur,Forward,1.0
+733,Senne Lammens,Senne Lammens,Lammens,30.0,€30.00m,Manchester United,Goalkeeper,1.0
+431,Altay Bayındır,Altay Bayındır,Bayindir,7.0,€7.00m,Manchester United,Goalkeeper,1.0
+434,Tom Heaton,Tom Heaton,Heaton,0.15,€150k,Manchester United,Goalkeeper,1.0
+444,Leny Yoro,Leny Yoro,Yoro,50.0,€50.00m,Manchester United,Defender,1.0
+436,Matthijs de Ligt,Matthijs de Ligt,De Ligt,40.0,€40.00m,Manchester United,Defender,1.0
+437,Lisandro Martínez,Lisandro Martínez,Martinez,40.0,€40.00m,Manchester United,Defender,1.0
+447,Ayden Heaven,Ayden Heaven,Heaven,20.0,€20.00m,Manchester United,Defender,1.0
+442,Harry Maguire,Harry Maguire,Maguire,10.0,€10.00m,Manchester United,Defender,1.0
+441,Patrick Dorgu,Patrick Dorgu,Dorgu,35.0,€35.00m,Manchester United,Defender,1.0
+443,Luke Shaw,Luke Shaw,Shaw,10.0,€10.00m,Manchester United,Defender,1.0
+448,Tyrell Malacia,Tyrell Malacia,Malacia,5.0,€5.00m,Manchester United,Defender,1.0
+440,Diogo Dalot,Diogo Dalot Teixeira,Dalot,30.0,€30.00m,Manchester United,Defender,0.71
+438,Noussair Mazraoui,Noussair Mazraoui,Mazraoui,20.0,€20.00m,Manchester United,Defender,1.0
+459,Manuel Ugarte,Manuel Ugarte Ribeiro,Ugarte,30.0,€30.00m,Manchester United,Midfielder,0.765
+457,Casemiro,Carlos Henrique Casimiro,Casemiro,8.0,€8.00m,Manchester United,Midfielder,1.0
+458,Kobbie Mainoo,Kobbie Mainoo,Mainoo,50.0,€50.00m,Manchester United,Midfielder,1.0
+449,Bruno Fernandes,Bruno Borges Fernandes,B.Fernandes,40.0,€40.00m,Manchester United,Midfielder,0.811
+455,Mason Mount,Mason Mount,Mount,30.0,€30.00m,Manchester United,Midfielder,1.0
+119,Bryan Mbeumo,Bryan Mbeumo,Mbeumo,80.0,€80.00m,Manchester United,Midfielder,1.0
+452,Amad Diallo,Amad Diallo,Amad,50.0,€50.00m,Manchester United,Midfielder,1.0
+407,Matheus Cunha,Matheus Nunes,Matheus N.,70.0,€70.00m,Manchester United,Defender,0.783
+681,Benjamin Sesko,Benjamin Sesko,Šeško,65.0,€65.00m,Manchester United,Forward,1.0
+466,Joshua Zirkzee,Joshua Zirkzee,Zirkzee,22.0,€22.00m,Manchester United,Forward,1.0
+467,Chido Obi,Chido Obi,Obi,5.0,€5.00m,Manchester United,Forward,1.0
+674,Aaron Ramsdale,Aaron Ramsdale,Ramsdale,12.0,€12.00m,Newcastle United,Goalkeeper,1.0
+469,Nick Pope,Nick Pope,Pope,7.0,€7.00m,Newcastle United,Goalkeeper,1.0
+471,Mark Gillespie,Mark Gillespie,Gillespie,0.15,€150k,Newcastle United,Goalkeeper,1.0
+753,John Ruddy,John Ruddy,Ruddy,0.1,€100k,Newcastle United,Goalkeeper,1.0
+684,Malick Thiaw,Malick Thiaw,Thiaw,45.0,€45.00m,Newcastle United,Defender,1.0
+475,Sven Botman,Sven Botman,Botman,35.0,€35.00m,Newcastle United,Defender,1.0
+474,Fabian Schär,Fabian Schär,Schär,6.0,€6.00m,Newcastle United,Defender,1.0
+476,Dan Burn,Dan Burn,Burn,5.0,€5.00m,Newcastle United,Defender,1.0
+473,Lewis Hall,Lewis Hall,Hall,35.0,€35.00m,Newcastle United,Defender,1.0
+481,Alex Murphy,Alex Murphy,A.Murphy,1.5,€1.50m,Newcastle United,Defender,1.0
+477,Tino Livramento,Tino Livramento,Livramento,40.0,€40.00m,Newcastle United,Defender,1.0
+478,Kieran Trippier,Kieran Trippier,Trippier,2.5,€2.50m,Newcastle United,Defender,1.0
+479,Emil Krafth,Emil Krafth,Krafth,1.0,€1.00m,Newcastle United,Defender,1.0
+491,Sandro Tonali,Sandro Tonali,Tonali,80.0,€80.00m,Newcastle United,Midfielder,1.0
+488,Bruno Guimarães,Bruno Guimarães Rodriguez Moura,Bruno G.,75.0,€75.00m,Newcastle United,Midfielder,0.652
+52,Jacob Ramsey,Jacob Ramsey,J.Ramsey,35.0,€35.00m,Newcastle United,Midfielder,1.0
+490,Joelinton,Joelinton Cássio Apolinário de Lira,Joelinton,30.0,€30.00m,Newcastle United,Midfielder,1.0
+497,Lewis Miley,Lewis Miley,L.Miley,25.0,€25.00m,Newcastle United,Midfielder,1.0
+494,Joe Willock,Joe Willock,Willock,16.0,€16.00m,Newcastle United,Midfielder,1.0
+485,Anthony Gordon,Anthony Gordon,Gordon,60.0,€60.00m,Newcastle United,Midfielder,1.0
+487,Harvey Barnes,Harvey Barnes,Barnes,32.0,€32.00m,Newcastle United,Midfielder,1.0
+486,Anthony Elanga,Anthony Elanga,Elanga,40.0,€40.00m,Newcastle United,Midfielder,1.0
+489,Jacob Murphy,Jacob Murphy,J.Murphy,15.0,€15.00m,Newcastle United,Midfielder,1.0
+714,Nick Woltemade,Nick Woltemade,Woltemade,65.0,€65.00m,Newcastle United,Forward,1.0
+135,Yoane Wissa,Yoane Wissa,Wissa,30.0,€30.00m,Newcastle United,Forward,1.0
+500,William Osula,William Osula,Osula,15.0,€15.00m,Newcastle United,Forward,1.0
+409,John Victor,John Stones,Stones,7.0,€7.00m,Nottingham Forest,Defender,0.636
+400,Stefan Ortega,Stefan Ortega Moreno,Ortega Moreno,5.0,€5.00m,Nottingham Forest,Goalkeeper,0.788
+502,Matz Sels,Matz Sels,Sels,4.0,€4.00m,Nottingham Forest,Goalkeeper,1.0
+675,Angus Gunn,Angus Gunn,Gunn,1.5,€1.50m,Nottingham Forest,Goalkeeper,1.0
+506,Murillo,Murillo Costa dos Santos,Murillo,50.0,€50.00m,Nottingham Forest,Defender,1.0
+505,Nikola Milenković,Nikola Milenković,Milenković,30.0,€30.00m,Nottingham Forest,Defender,1.0
+511,Morato,Felipe Rodrigues da Silva,Morato,14.0,€14.00m,Nottingham Forest,Defender,1.0
+510,Jair Cunha,Jair Paula da Cunha Filho,Jair Cunha,12.0,€12.00m,Nottingham Forest,Defender,1.0
+513,Zach Abbott,Zach Abbott,Abbott,3.0,€3.00m,Nottingham Forest,Defender,1.0
+514,Willy Boly,Willy Boly,Boly,0.5,€500k,Nottingham Forest,Defender,1.0
+508,Neco Williams,Neco Williams,N.Williams,25.0,€25.00m,Nottingham Forest,Defender,1.0
+814,Luca Netz,Luca Netz,Netz,6.0,€6.00m,Nottingham Forest,Defender,1.0
+507,Ola Aina,Ola Aina,Aina,20.0,€20.00m,Nottingham Forest,Defender,1.0
+716,Nicolò Savona,Nicolò Savona,Savona,18.0,€18.00m,Nottingham Forest,Defender,1.0
+523,Eric da Silva Moreira,Eric da Silva Moreira,Da Silva Moreira,1.0,€1.00m,Nottingham Forest,Midfielder,1.0
+521,Ibrahim Sangaré,Ibrahim Sangaré,Sangaré,22.0,€22.00m,Nottingham Forest,Midfielder,1.0
+517,Elliot Anderson,Elliot Anderson,Anderson,60.0,€60.00m,Nottingham Forest,Midfielder,1.0
+519,Nicolás Domínguez,Nicolás Domínguez,Dominguez,16.0,€16.00m,Nottingham Forest,Midfielder,1.0
+522,Ryan Yates,Ryan Yates,Yates,8.0,€8.00m,Nottingham Forest,Midfielder,1.0
+515,Morgan Gibbs-White,Morgan Gibbs-White,Gibbs-White,60.0,€60.00m,Nottingham Forest,Midfielder,1.0
+693,Omari Hutchinson,Omari Hutchinson,Hutchinson,30.0,€30.00m,Nottingham Forest,Midfielder,1.0
+426,James McAtee,James McAtee,McAtee,20.0,€20.00m,Nottingham Forest,Midfielder,1.0
+516,Callum Hudson-Odoi,Callum Hudson-Odoi,Hudson-Odoi,30.0,€30.00m,Nottingham Forest,Midfielder,1.0
+669,Dan Ndoye,Dan Ndoye,Ndoye,35.0,€35.00m,Nottingham Forest,Midfielder,1.0
+734,Dilane Bakwa,Dilane Bakwa,Bakwa,28.0,€28.00m,Nottingham Forest,Midfielder,1.0
+805,Lorenzo Lucca,Lorenzo Lucca,Lucca,25.0,€25.00m,Nottingham Forest,Forward,1.0
+526,Igor Jesus,Igor Jesus Maciel da Cruz,Igor Jesus,22.0,€22.00m,Nottingham Forest,Forward,1.0
+527,Taiwo Awoniyi,Taiwo Awoniyi,Awoniyi,9.0,€9.00m,Nottingham Forest,Forward,1.0
+525,Chris Wood,Chris Wood,Wood,6.0,€6.00m,Nottingham Forest,Forward,1.0
+32,Emiliano Martínez,Emiliano Martínez Romero,Martinez,15.0,€15.00m,Aston Villa,Goalkeeper,0.829
+33,Marco Bizot,Marco Bizot,M.Bizot,2.5,€2.50m,Aston Villa,Goalkeeper,1.0
+38,Ezri Konsa,Ezri Konsa Ngoyo,Konsa,40.0,€40.00m,Aston Villa,Defender,0.769
+41,Pau Torres,Pau Torres,Pau,22.0,€22.00m,Aston Villa,Defender,1.0
+719,Victor Lindelöf,Victor Lindelöf,Lindelöf,6.0,€6.00m,Aston Villa,Defender,1.0
+40,Tyrone Mings,Tyrone Mings,Mings,4.0,€4.00m,Aston Villa,Defender,1.0
+39,Ian Maatsen,Ian Maatsen,Maatsen,30.0,€30.00m,Aston Villa,Defender,1.0
+37,Lucas Digne,Lucas Digne,Digne,8.0,€8.00m,Aston Villa,Defender,1.0
+36,Matty Cash,Matty Cash,Cash,22.0,€22.00m,Aston Villa,Defender,1.0
+42,Andrés García,Andrés García,A.García,7.0,€7.00m,Aston Villa,Defender,1.0
+59,Amadou Onana,Amadou Onana,Onana,45.0,€45.00m,Aston Villa,Midfielder,1.0
+58,Boubacar Kamara,Boubacar Kamara,Kamara,40.0,€40.00m,Aston Villa,Midfielder,1.0
+44,Lamare Bogarde,Lamare Bogarde,Bogarde,15.0,€15.00m,Aston Villa,Defender,1.0
+48,Youri Tielemans,Youri Tielemans,Tielemans,35.0,€35.00m,Aston Villa,Midfielder,1.0
+699,Douglas Luiz,Douglas Luiz Soares de Paulo,Douglas Luiz,20.0,€20.00m,Aston Villa,Midfielder,1.0
+54,John McGinn,John McGinn,McGinn,15.0,€15.00m,Aston Villa,Midfielder,1.0
+55,Ross Barkley,Ross Barkley,Barkley,5.0,€5.00m,Aston Villa,Midfielder,1.0
+47,Morgan Rogers,Morgan Rogers,Rogers,80.0,€80.00m,Aston Villa,Midfielder,1.0
+389,Harvey Elliott,Harvey Elliott,Elliott,22.0,€22.00m,Aston Villa,Midfielder,1.0
+50,Emiliano Buendía,Emiliano Buendía Stati,Buendía,18.0,€18.00m,Aston Villa,Midfielder,0.842
+456,Jadon Sancho,Jadon Sancho,Sancho,20.0,€20.00m,Aston Villa,Midfielder,1.0
+49,Leon Bailey,Leon Bailey,Bailey,16.0,€16.00m,Aston Villa,Midfielder,1.0
+792,Alysson,Alysson Edward Franco da Rocha dos Santos,Alysson,10.0,€10.00m,Aston Villa,Midfielder,1.0
+64,Ollie Watkins,Ollie Watkins,Watkins,30.0,€30.00m,Aston Villa,Forward,1.0
+808,Tammy Abraham,Tammy Abraham,Abraham,20.0,€20.00m,Aston Villa,Forward,1.0
+253,Dean Henderson,Dean Henderson,Henderson,28.0,€28.00m,Crystal Palace,Goalkeeper,1.0
+254,Walter Benítez,Walter Benítez,Benitez,5.0,€5.00m,Crystal Palace,Goalkeeper,1.0
+255,Remi Matthews,Remi Matthews,Matthews,0.3,€300k,Crystal Palace,Goalkeeper,1.0
+257,Maxence Lacroix,Maxence Lacroix,Lacroix,40.0,€40.00m,Crystal Palace,Defender,1.0
+261,Chris Richards,Chris Richards,Richards,25.0,€25.00m,Crystal Palace,Defender,1.0
+723,Jaydee Canvot,Jaydee Canvot,Canvot,20.0,€20.00m,Crystal Palace,Defender,1.0
+262,Chadi Riad,Chadi Riad Dnanou,Chadi Riad,12.0,€12.00m,Crystal Palace,Defender,1.0
+258,Tyrick Mitchell,Tyrick Mitchell,Mitchell,25.0,€25.00m,Crystal Palace,Defender,1.0
+259,Borna Sosa,Borna Sosa,Sosa,4.0,€4.00m,Crystal Palace,Defender,1.0
+690,Rio Cardines,Rio Cardines,Cardines,0.3,€300k,Crystal Palace,Midfielder,1.0
+256,Daniel Muñoz,Daniel Muñoz Mejía,Muñoz,27.0,€27.00m,Crystal Palace,Defender,0.8
+265,Caleb Kporha,Caleb Kporha,Kporha,1.0,€1.00m,Crystal Palace,Defender,1.0
+263,Nathaniel Clyne,Nathaniel Clyne,Clyne,0.5,€500k,Crystal Palace,Defender,1.0
+273,Adam Wharton,Adam Wharton,Wharton,60.0,€60.00m,Crystal Palace,Midfielder,1.0
+268,Cheick Doucouré,Cheick Doucouré,Doucouré,13.0,€13.00m,Crystal Palace,Midfielder,1.0
+272,Jefferson Lerma,Jefferson Lerma Solís,Lerma,8.0,€8.00m,Crystal Palace,Midfielder,0.833
+281,Kaden Rodney,Kaden Rodney,Rodney,0.2,€200k,Crystal Palace,Midfielder,1.0
+270,Will Hughes,Will Hughes,Hughes,6.0,€6.00m,Crystal Palace,Midfielder,1.0
+271,Daichi Kamada,Daichi Kamada,Kamada,12.0,€12.00m,Crystal Palace,Midfielder,1.0
+276,Justin Devenny,Justin Devenny,Devenny,12.0,€12.00m,Crystal Palace,Midfielder,1.0
+267,Ismaïla Sarr,Ismaïla Sarr,Sarr,35.0,€35.00m,Crystal Palace,Midfielder,1.0
+712,Yéremy Pino,Yéremy Pino Santos,Yeremy,35.0,€35.00m,Crystal Palace,Midfielder,0.759
+580,Brennan Johnson,Brennan Johnson,Johnson,35.0,€35.00m,Crystal Palace,Midfielder,1.0
+677,Evann Guessand,Evann Guessand,Guessand,28.0,€28.00m,Crystal Palace,Midfielder,1.0
+654,Jørgen Strand Larsen,Jørgen Strand Larsen,Strand Larsen,45.0,€45.00m,Crystal Palace,Forward,1.0
+283,Jean-Philippe Mateta,Jean-Philippe Mateta,Mateta,35.0,€35.00m,Crystal Palace,Forward,1.0
+732,Christantus Uche,Christantus Uche,Uche,15.0,€15.00m,Crystal Palace,Forward,1.0
+284,Eddie Nketiah,Eddie Nketiah,Nketiah,14.0,€14.00m,Crystal Palace,Forward,1.0
+67,Djordje Petrovic,Đorđe Petrović,Petrović,28.0,€28.00m,AFC Bournemouth,Goalkeeper,0.733
+806,Christos Mandas,Christos Mandas,Mandas,10.0,€10.00m,AFC Bournemouth,Goalkeeper,1.0
+782,Fraser Forster,Fraser Forster,Forster,0.6,€600k,AFC Bournemouth,Goalkeeper,1.0
+685,Bafodé Diakité,Bafodé Diakité,Diakité,30.0,€30.00m,AFC Bournemouth,Defender,1.0
+72,Marcos Senesi,Marcos Senesi Barón,Senesi,22.0,€22.00m,AFC Bournemouth,Defender,0.812
+721,Veljko Milosavljevic,Veljko Milosavljevic,Milosavljević,20.0,€20.00m,AFC Bournemouth,Defender,1.0
+77,James Hill,James Hill,Hill,15.0,€15.00m,AFC Bournemouth,Defender,1.0
+75,Matai Akinmboni,Matai Akinmboni,Akinmboni,1.0,€1.00m,AFC Bournemouth,Defender,1.0
+74,Adrien Truffert,Adrien Truffert,Truffert,25.0,€25.00m,AFC Bournemouth,Defender,1.0
+80,Julio Soler,Julio Soler Barreto,Soler,8.0,€8.00m,AFC Bournemouth,Defender,0.733
+713,Álex Jiménez,Álex Jiménez Sánchez,A.Jimenez,22.0,€22.00m,AFC Bournemouth,Defender,0.75
+73,Adam Smith,Adam Smith,Smith,0.5,€500k,AFC Bournemouth,Defender,1.0
+85,Tyler Adams,Tyler Adams,Adams,25.0,€25.00m,AFC Bournemouth,Midfielder,1.0
+90,Alex Scott,Alex Scott,Scott,40.0,€40.00m,AFC Bournemouth,Midfielder,1.0
+88,Lewis Cook,Lewis Cook,Cook,13.0,€13.00m,AFC Bournemouth,Midfielder,1.0
+801,Alex Tóth,Alex Tóth,Tóth.A,12.0,€12.00m,AFC Bournemouth,Midfielder,1.0
+87,Ryan Christie,Ryan Christie,Christie,9.0,€9.00m,AFC Bournemouth,Midfielder,1.0
+81,Justin Kluivert,Justin Kluivert,Kluivert,30.0,€30.00m,AFC Bournemouth,Midfielder,1.0
+84,Marcus Tavernier,Marcus Tavernier,Tavernier,23.0,€23.00m,AFC Bournemouth,Midfielder,1.0
+697,Amine Adli,Amine Adli,Adli,20.0,€20.00m,AFC Bournemouth,Midfielder,1.0
+807,Rayan,Rayan Vitor Simplício Rocha,Rayan,40.0,€40.00m,AFC Bournemouth,Midfielder,1.0
+391,Ben Gannon-Doak,Ben Gannon-Doak,Gannon-Doak,16.0,€16.00m,AFC Bournemouth,Midfielder,1.0
+86,David Brooks,David Brooks,Brooks,14.0,€14.00m,AFC Bournemouth,Midfielder,1.0
+100,Junior Kroupi,Junior Kroupi,Kroupi.Jr,40.0,€40.00m,AFC Bournemouth,Forward,1.0
+97,Evanilson,Francisco Evanilson de Lima Barbosa,Evanilson,35.0,€35.00m,AFC Bournemouth,Forward,1.0
+98,Enes Ünal,Enes Ünal,Enes Ünal,8.0,€8.00m,AFC Bournemouth,Forward,1.0
+139,Bart Verbruggen,Bart Verbruggen,Verbruggen,40.0,€40.00m,Brighton & Hove Albion,Goalkeeper,1.0
+138,Jason Steele,Jason Steele,Steele,0.75,€750k,Brighton & Hove Albion,Goalkeeper,1.0
+140,Tom McGill,Tom McGill,McGill,0.5,€500k,Brighton & Hove Albion,Goalkeeper,1.0
+151,Jan Paul van Hecke,Jan Paul van Hecke,Van Hecke,35.0,€35.00m,Brighton & Hove Albion,Defender,1.0
+143,Olivier Boscagli,Olivier Boscagli,Boscagli,15.0,€15.00m,Brighton & Hove Albion,Defender,1.0
+526,Igor Julio,Igor Jesus Maciel da Cruz,Igor Jesus,12.0,€12.00m,Brighton & Hove Albion,Forward,0.7
+153,Adam Webster,Adam Webster,Webster,5.0,€5.00m,Brighton & Hove Albion,Defender,1.0
+146,Lewis Dunk,Lewis Dunk,Dunk,4.0,€4.00m,Brighton & Hove Albion,Defender,1.0
+148,Ferdi Kadıoğlu,Ferdi Kadıoğlu,F.Kadıoğlu,30.0,€30.00m,Brighton & Hove Albion,Defender,1.0
+145,Maxim De Cuyper,Maxim De Cuyper,De Cuyper,22.0,€22.00m,Brighton & Hove Albion,Defender,1.0
+152,Joël Veltman,Joël Veltman,Veltman,2.5,€2.50m,Brighton & Hove Albion,Defender,1.0
+167,Carlos Baleba,Carlos Baleba,Baleba,55.0,€55.00m,Brighton & Hove Albion,Midfielder,1.0
+173,Mats Wieffer,Mats Wieffer,Wieffer,25.0,€25.00m,Brighton & Hove Albion,Midfielder,1.0
+163,Jack Hinshelwood,Jack Hinshelwood,Hinshelwood,22.0,€22.00m,Brighton & Hove Albion,Midfielder,1.0
+166,Yasin Ayari,Yasin Ayari,Ayari,30.0,€30.00m,Brighton & Hove Albion,Midfielder,1.0
+169,Diego Gómez,Diego Gómez Amarilla,Gomez,25.0,€25.00m,Brighton & Hove Albion,Midfielder,0.71
+164,Matt O'Riley,Matt O'Riley,O'Riley,20.0,€20.00m,Brighton & Hove Albion,Midfielder,1.0
+783,Pascal Groß,Pascal Groß,Groß,3.5,€3.50m,Brighton & Hove Albion,Midfielder,1.0
+170,James Milner,James Milner,Milner,0.75,€750k,Brighton & Hove Albion,Midfielder,1.0
+157,Kaoru Mitoma,Mitoma Kaoru,Mitoma,25.0,€25.00m,Brighton & Hove Albion,Midfielder,0.667
+160,Yankuba Minteh,Yankuba Minteh,Minteh,40.0,€40.00m,Brighton & Hove Albion,Midfielder,1.0
+159,Solly March,Solly March,March,2.0,€2.00m,Brighton & Hove Albion,Midfielder,1.0
+158,Georginio Rutter,Georginio Rutter,Georginio,30.0,€30.00m,Brighton & Hove Albion,Midfielder,1.0
+181,Charalampos Kostoulas,Charalampos Kostoulas,Kostoulas,25.0,€25.00m,Brighton & Hove Albion,Forward,1.0
+180,Stefanos Tzimas,Stefanos Tzimas,Tzimas,20.0,€20.00m,Brighton & Hove Albion,Forward,1.0
+178,Danny Welbeck,Danny Welbeck,Welbeck,4.0,€4.00m,Brighton & Hove Albion,Forward,1.0
+101,Caoimhín Kelleher,Caoimhín Kelleher,Kelleher,25.0,€25.00m,Brentford FC,Goalkeeper,1.0
+105,Hákon Valdimarsson,Hákon Rafn Valdimarsson,Valdimarsson,2.5,€2.50m,Brentford FC,Goalkeeper,0.878
+102,Ellery Balcombe,Ellery Balcombe,Balcombe,0.4,€400k,Brentford FC,Goalkeeper,1.0
+113,Sepp van den Berg,Sepp van den Berg,Van den Berg,32.0,€32.00m,Brentford FC,Defender,1.0
+106,Nathan Collins,Nathan Collins,Collins,30.0,€30.00m,Brentford FC,Defender,1.0
+108,Kristoffer Ajer,Kristoffer Ajer,Ajer,18.0,€18.00m,Brentford FC,Defender,1.0
+111,Ethan Pinnock,Ethan Pinnock,Pinnock,4.0,€4.00m,Brentford FC,Defender,1.0
+109,Rico Henry,Rico Henry,Henry,15.0,€15.00m,Brentford FC,Defender,1.0
+110,Michael Kayode,Michael Kayode,Kayode,35.0,€35.00m,Brentford FC,Defender,1.0
+116,Aaron Hickey,Aaron Hickey,Hickey,16.0,€16.00m,Brentford FC,Defender,1.0
+125,Vitaly Janelt,Vitaly Janelt,Janelt,18.0,€18.00m,Brentford FC,Midfielder,1.0
+124,Jordan Henderson,Jordan Henderson,Henderson,2.0,€2.00m,Brentford FC,Midfielder,1.0
+129,Yegor Yarmolyuk,Yehor Yarmoliuk,Yarmoliuk,30.0,€30.00m,Brentford FC,Midfielder,0.867
+126,Mathias Jensen,Mathias Jensen,Jensen,12.0,€12.00m,Brentford FC,Midfielder,1.0
+748,Josh Dasilva,Josh Dasilva,Dasilva,2.0,€2.00m,Brentford FC,Midfielder,1.0
+107,Keane Lewis-Potter,Keane Lewis-Potter,Lewis-Potter,25.0,€25.00m,Brentford FC,Defender,1.0
+121,Mikkel Damsgaard,Mikkel Damsgaard,Damsgaard,30.0,€30.00m,Brentford FC,Midfielder,1.0
+122,Antoni Milambo,Antoni Milambo,Milambo,20.0,€20.00m,Brentford FC,Midfielder,1.0
+123,Fábio Carvalho,Fábio Freitas Gouveia Carvalho,Carvalho,10.0,€10.00m,Brentford FC,Midfielder,0.727
+120,Kevin Schade,Kevin Schade,Schade,35.0,€35.00m,Brentford FC,Midfielder,1.0
+27,Reiss Nelson,Reiss Nelson,Nelson,12.0,€12.00m,Brentford FC,Midfielder,1.0
+83,Dango Ouattara,Dango Ouattara,O.Dango,35.0,€35.00m,Brentford FC,Midfielder,1.0
+130,Romelle Donovan,Romelle Donovan,Donovan,3.5,€3.50m,Brentford FC,Midfielder,1.0
+136,Igor Thiago,Igor Thiago Nascimento Rodrigues,Thiago,50.0,€50.00m,Brentford FC,Forward,0.706
+797,Kaye Furo,Kaye Furo,Furo,8.0,€8.00m,Brentford FC,Forward,1.0
+287,Jordan Pickford,Jordan Pickford,Pickford,15.0,€15.00m,Everton FC,Goalkeeper,1.0
+288,Mark Travers,Mark Travers,Travers,4.0,€4.00m,Everton FC,Goalkeeper,1.0
+630,Tom King,Tom King,King,0.15,€150k,Everton FC,Goalkeeper,1.0
+290,Jarrad Branthwaite,Jarrad Branthwaite,Branthwaite,45.0,€45.00m,Everton FC,Defender,1.0
+291,James Tarkowski,James Tarkowski,Tarkowski,7.0,€7.00m,Everton FC,Defender,1.0
+295,Michael Keane,Michael Keane,Keane,4.0,€4.00m,Everton FC,Defender,1.0
+292,Vitaliy Mykolenko,Vitalii Mykolenko,Mykolenko,25.0,€25.00m,Everton FC,Defender,0.941
+667,Adam Aznou,Adam Aznou,Aznou,7.0,€7.00m,Everton FC,Defender,1.0
+293,Jake O'Brien,Jake O'Brien,O'Brien,18.0,€18.00m,Everton FC,Defender,1.0
+296,Nathan Patterson,Nathan Patterson,Patterson,10.0,€10.00m,Everton FC,Defender,1.0
+294,Séamus Coleman,Séamus Coleman,Coleman,0.3,€300k,Everton FC,Defender,1.0
+303,James Garner,James Garner,Garner,35.0,€35.00m,Everton FC,Midfielder,1.0
+302,Idrissa Gueye,Idrissa Gana Gueye,Gana,1.0,€1.00m,Everton FC,Midfielder,0.839
+242,Kiernan Dewsbury-Hall,Kiernan Dewsbury-Hall,Dewsbury-Hall,32.0,€32.00m,Everton FC,Midfielder,1.0
+301,Carlos Alcaraz,Carlos Alcaraz Durán,Alcaraz,15.0,€15.00m,Everton FC,Midfielder,0.824
+304,Tim Iroegbunam,Tim Iroegbunam,Iroegbunam,15.0,€15.00m,Everton FC,Midfielder,1.0
+305,Harrison Armstrong,Harrison Armstrong,Armstrong,12.0,€12.00m,Everton FC,Midfielder,1.0
+728,Merlin Röhl,Merlin Röhl,Röhl,16.0,€16.00m,Everton FC,Midfielder,1.0
+419,Jack Grealish,Jack Grealish,Grealish,25.0,€25.00m,Everton FC,Midfielder,1.0
+243,Tyrique George,Tyrique George,George,22.0,€22.00m,Everton FC,Midfielder,1.0
+300,Dwight McNeil,Dwight McNeil,McNeil,20.0,€20.00m,Everton FC,Midfielder,1.0
+299,Iliman Ndiaye,Iliman Ndiaye,Ndiaye,50.0,€50.00m,Everton FC,Midfielder,1.0
+707,Tyler Dibling,Tyler Dibling,Dibling,22.0,€22.00m,Everton FC,Midfielder,1.0
+310,Thierno Barry,Thierno Barry,Barry,30.0,€30.00m,Everton FC,Forward,1.0
+311,Beto,Norberto Bercique Gomes Betuncal,Beto,20.0,€20.00m,Everton FC,Forward,1.0
+314,Bernd Leno,Bernd Leno,Leno,8.0,€8.00m,Fulham FC,Goalkeeper,1.0
+664,Benjamin Lecomte,Benjamin Lecomte,Lecomte,1.2,€1.20m,Fulham FC,Goalkeeper,1.0
+318,Calvin Bassey,Calvin Bassey,Bassey,28.0,€28.00m,Fulham FC,Defender,1.0
+317,Joachim Andersen,Joachim Andersen,Andersen,25.0,€25.00m,Fulham FC,Defender,1.0
+320,Issa Diop,Issa Diop,Diop,10.0,€10.00m,Fulham FC,Defender,1.0
+321,Jorge Cuenca,Jorge Cuenca Barreno,J.Cuenca,8.0,€8.00m,Fulham FC,Defender,0.75
+316,Antonee Robinson,Antonee Robinson,Robinson,25.0,€25.00m,Fulham FC,Defender,1.0
+328,Ryan Sessegnon,Ryan Sessegnon,Sessegnon,20.0,€20.00m,Fulham FC,Midfielder,1.0
+322,Kenny Tete,Kenny Tete,Tete,11.0,€11.00m,Fulham FC,Defender,1.0
+319,Timothy Castagne,Timothy Castagne,Castagne,10.0,€10.00m,Fulham FC,Defender,1.0
+330,Sander Berge,Sander Berge,Berge,25.0,€25.00m,Fulham FC,Midfielder,1.0
+332,Saša Lukić,Saša Lukić,Lukić,12.0,€12.00m,Fulham FC,Midfielder,1.0
+336,Harrison Reed,Harrison Reed,Reed,3.0,€3.00m,Fulham FC,Midfielder,1.0
+331,Tom Cairney,Tom Cairney,Cairney,0.75,€750k,Fulham FC,Midfielder,1.0
+325,Emile Smith Rowe,Emile Smith Rowe,Smith Rowe,22.0,€22.00m,Fulham FC,Midfielder,1.0
+335,Josh King,Josh King,King,20.0,€20.00m,Fulham FC,Midfielder,1.0
+731,Kevin,Kevin Santos Lopes de Macedo,Kevin,30.0,€30.00m,Fulham FC,Midfielder,1.0
+324,Alex Iwobi,Alex Iwobi,Iwobi,25.0,€25.00m,Fulham FC,Midfielder,1.0
+424,Oscar Bobb,Oscar Bobb,Bobb,30.0,€30.00m,Fulham FC,Midfielder,1.0
+329,Harry Wilson,Harry Wilson,Wilson,25.0,€25.00m,Fulham FC,Midfielder,1.0
+727,Samuel Chukwueze,Samuel Chukwueze,Chukwueze,15.0,€15.00m,Fulham FC,Midfielder,1.0
+338,Rodrigo Muniz,Rodrigo Muniz Carvalho,Muniz,25.0,€25.00m,Fulham FC,Forward,0.743
+337,Raúl Jiménez,Raúl Jiménez Rodríguez,Raúl,4.0,€4.00m,Fulham FC,Forward,0.706
+737,Jonah Kusi-Asare,Jonah Kusi-Asare,Kusi-Asare,4.0,€4.00m,Fulham FC,Forward,1.0
+670,Robin Roefs,Robin Roefs,Roefs,25.0,€25.00m,Sunderland AFC,Goalkeeper,1.0
+812,Melker Ellborg,Melker Ellborg,Ellborg,3.0,€3.00m,Sunderland AFC,Goalkeeper,1.0
+529,Simon Moore,Simon Moore,Moore,0.1,€100k,Sunderland AFC,Goalkeeper,1.0
+531,Dan Ballard,Daniel Ballard,Ballard,20.0,€20.00m,Sunderland AFC,Defender,0.88
+683,Omar Alderete,Omar Alderete,Alderete,15.0,€15.00m,Sunderland AFC,Defender,1.0
+539,Luke O'Nien,Luke O'Nien,O'Nien,1.0,€1.00m,Sunderland AFC,Defender,1.0
+535,Dennis Cirkin,Dennis Cirkin,Cirkin,8.0,€8.00m,Sunderland AFC,Defender,1.0
+541,Reinildo Mandava,Reinildo Mandava,Reinildo,5.0,€5.00m,Sunderland AFC,Defender,1.0
+532,Trai Hume,Trai Hume,Hume,22.0,€22.00m,Sunderland AFC,Defender,1.0
+724,Lutsharel Geertruida,Lutsharel Geertruida,Geertruida,20.0,€20.00m,Sunderland AFC,Defender,1.0
+694,Nordi Mukiele,Nordi Mukiele,Mukiele,18.0,€18.00m,Sunderland AFC,Defender,1.0
+668,Granit Xhaka,Granit Xhaka,Xhaka,10.0,€10.00m,Sunderland AFC,Midfielder,1.0
+544,Habib Diarra,Habib Diarra,Diarra,32.0,€32.00m,Sunderland AFC,Midfielder,1.0
+552,Noah Sadiki,Noah Sadiki,Sadiki,30.0,€30.00m,Sunderland AFC,Midfielder,1.0
+547,Enzo Le Fée,Enzo Le Fée,E.Le Fée,25.0,€25.00m,Sunderland AFC,Midfielder,1.0
+554,Abdoullah Ba,Abdoullah Ba,Ba,2.0,€2.00m,Sunderland AFC,Midfielder,1.0
+551,Chris Rigg,Chris Rigg,Rigg,25.0,€25.00m,Sunderland AFC,Midfielder,1.0
+546,Milan Aleksic,Milan Aleksić,Aleksić,0.7,€700k,Sunderland AFC,Midfielder,0.923
+557,Harrison Jones,Harrison Jones,H.Jones,0.15,€150k,Sunderland AFC,Midfielder,1.0
+813,Nilson Angulo,Nilson Angulo,Angulo,17.0,€17.00m,Sunderland AFC,Midfielder,1.0
+548,Romaine Mundle,Romaine Mundle,Mundle,8.0,€8.00m,Sunderland AFC,Midfielder,1.0
+553,Chemsdine Talbi,Chemsdine Talbi,Talbi,25.0,€25.00m,Sunderland AFC,Midfielder,1.0
+735,Bertrand Traoré,Bertrand Traoré,Traoré,5.0,€5.00m,Sunderland AFC,Midfielder,1.0
+800,Jocelin Ta Bi,Djiamgone Jocelin Ta Bi,Jocelin.T,3.0,€3.00m,Sunderland AFC,Midfielder,0.727
+730,Brian Brobbey,Brian Brobbey,Brobbey,25.0,€25.00m,Sunderland AFC,Forward,1.0
+561,Eliezer Mayenda,Eliezer Mayenda Dossou,Mayenda,18.0,€18.00m,Sunderland AFC,Forward,0.811
+560,Wilson Isidor,Wilson Isidor,Isidor,18.0,€18.00m,Sunderland AFC,Forward,1.0
+562,Ahmed Abdullahi,Ahmed Abdullahi,Abdullahi,1.0,€1.00m,Sunderland AFC,Forward,1.0
+679,Mads Hermansen,Mads Hermansen,Hermansen,15.0,€15.00m,West Ham United,Goalkeeper,1.0
+600,Alphonse Areola,Alphonse Areola,Areola,5.0,€5.00m,West Ham United,Goalkeeper,1.0
+738,Lukasz Fabianski,Lukasz Fabianski,Fabianski,0.25,€250k,West Ham United,Goalkeeper,1.0
+609,Jean-Clair Todibo,Jean-Clair Todibo,Todibo,23.0,€23.00m,West Ham United,Defender,1.0
+605,Maximilian Kilman,Maximilian Kilman,Kilman,16.0,€16.00m,West Ham United,Defender,1.0
+815,Axel Disasi,Axel Disasi,Disasi,15.0,€15.00m,West Ham United,Defender,1.0
+606,Konstantinos Mavropanos,Konstantinos Mavropanos,Mavropanos,15.0,€15.00m,West Ham United,Defender,1.0
+747,Ezra Mayers,Ezra Mayers,Mayers,1.2,€1.20m,West Ham United,Defender,1.0
+603,El Hadji Malick Diouf,El Hadji Malick Diouf,Diouf,28.0,€28.00m,West Ham United,Defender,1.0
+608,Oliver Scarles,Ollie Scarles,Scarles,10.0,€10.00m,West Ham United,Defender,0.889
+610,Aaron Wan-Bissaka,Aaron Wan-Bissaka,Wan-Bissaka,22.0,€22.00m,West Ham United,Defender,1.0
+659,Kyle Walker-Peters,Kyle Walker-Peters,Walker-Peters,13.0,€13.00m,West Ham United,Defender,1.0
+718,Soungoutou Magassa,Soungoutou Magassa,S.Magassa,17.0,€17.00m,West Ham United,Midfielder,1.0
+613,Tomáš Souček,Tomáš Souček,Souček,12.0,€12.00m,West Ham United,Midfielder,1.0
+623,Freddie Potts,Freddie Potts,Potts,10.0,€10.00m,West Ham United,Midfielder,1.0
+758,Mohamadou Kanté,Mohamadou Kanté,Mohamadou Kanté,0.3,€300k,West Ham United,Midfielder,1.0
+407,Mateus Fernandes,Matheus Nunes,Matheus N.,35.0,€35.00m,West Ham United,Defender,0.759
+615,Crysencio Summerville,Crysencio Summerville,Summerville,30.0,€30.00m,West Ham United,Midfielder,1.0
+802,Keiber Lamadrid,Keiber Lamadrid,Lamadrid,1.2,€1.20m,West Ham United,Midfielder,1.0
+624,Jarrod Bowen,Jarrod Bowen,Bowen,35.0,€35.00m,West Ham United,Forward,1.0
+326,Adama Traoré,Adama Traoré Diarra,Adama,8.0,€8.00m,West Ham United,Midfielder,0.774
+791,Taty Castellanos,Valentín Castellanos,Taty,28.0,€28.00m,West Ham United,Forward,0.815
+785,Pablo,Pablo Felipe Pereira de Jesus,Pablo,18.0,€18.00m,West Ham United,Forward,1.0
+671,Callum Wilson,Callum Wilson,Wilson,5.0,€5.00m,West Ham United,Forward,1.0
+665,Lucas Perri,Lucas Estella Perri,Perri,13.0,€13.00m,Leeds United,Goalkeeper,0.733
+339,Illan Meslier,Illan Meslier,Meslier,10.0,€10.00m,Leeds United,Goalkeeper,1.0
+341,Karl Darlow,Karl Darlow,Darlow,0.2,€200k,Leeds United,Goalkeeper,1.0
+340,Alex Cairns,Alex Cairns,Cairns,0.075,€75k,Leeds United,Goalkeeper,1.0
+343,Pascal Struijk,Pascal Struijk,Struijk,22.0,€22.00m,Leeds United,Defender,1.0
+344,Jaka Bijol,Jaka Bijol,Bijol,18.0,€18.00m,Leeds United,Defender,1.0
+348,Joe Rodon,Joe Rodon,Rodon,15.0,€15.00m,Leeds United,Defender,1.0
+345,Sebastiaan Bornauw,Sebastiaan Bornauw,Bornauw,8.0,€8.00m,Leeds United,Defender,1.0
+347,Gabriel Gudmundsson,Gabriel Gudmundsson,Gudmundsson,20.0,€20.00m,Leeds United,Defender,1.0
+346,Sam Byram,Sam Byram,Byram,0.6,€600k,Leeds United,Defender,1.0
+342,Jayden Bogle,Jayden Bogle,Bogle,12.0,€12.00m,Leeds United,Defender,1.0
+706,James Justin,James Justin,Justin,12.0,€12.00m,Leeds United,Defender,1.0
+354,Ethan Ampadu,Ethan Ampadu,Ampadu,25.0,€25.00m,Leeds United,Midfielder,1.0
+660,Anton Stach,Anton Stach,Stach,25.0,€25.00m,Leeds United,Midfielder,1.0
+356,Ilia Gruev,Ilia Gruev,Gruev,12.0,€12.00m,Leeds United,Midfielder,1.0
+359,Charlie Crew,Charlie Crew,Crew,0.15,€150k,Leeds United,Midfielder,1.0
+493,Sean Longstaff,Sean Longstaff,Longstaff,16.0,€16.00m,Leeds United,Midfielder,1.0
+358,Ao Tanaka,Tanaka Ao,Tanaka,10.0,€10.00m,Leeds United,Midfielder,0.8
+350,Brenden Aaronson,Brenden Aaronson,Aaronson,18.0,€18.00m,Leeds United,Midfielder,1.0
+168,Facundo Buonanotte,Facundo Buonanotte,Buonanotte,16.0,€16.00m,Leeds United,Midfielder,1.0
+698,Noah Okafor,Noah Okafor,Okafor,18.0,€18.00m,Leeds United,Midfielder,1.0
+351,Wilfried Gnonto,Wilfried Gnonto,Gnonto,18.0,€18.00m,Leeds United,Midfielder,1.0
+353,Daniel James,Daniel James,James,12.0,€12.00m,Leeds United,Midfielder,1.0
+691,Dominic Calvert-Lewin,Dominic Calvert-Lewin,Calvert-Lewin,22.0,€22.00m,Leeds United,Forward,1.0
+362,Joël Piroe,Joël Piroe,Piroe,13.0,€13.00m,Leeds United,Forward,1.0
+365,Lukas Nmecha,Lukas Nmecha,Nmecha,10.0,€10.00m,Leeds United,Forward,1.0
+628,José Sá,José Malheiro de Sá,José Sá,5.0,€5.00m,Wolverhampton Wanderers,Goalkeeper,1.0
+627,Sam Johnstone,Sam Johnstone,Johnstone,3.0,€3.00m,Wolverhampton Wanderers,Goalkeeper,1.0
+629,Daniel Bentley,Daniel Bentley,Bentley,1.0,€1.00m,Wolverhampton Wanderers,Goalkeeper,1.0
+709,Ladislav Krejčí,Ladislav Krejcí,Krejčí,22.0,€22.00m,Wolverhampton Wanderers,Defender,0.933
+637,Toti,Toti Gomes,Toti,20.0,€20.00m,Wolverhampton Wanderers,Defender,1.0
+634,Yerson Mosquera,Yerson Mosquera Valdelamar,Mosquera,12.0,€12.00m,Wolverhampton Wanderers,Defender,0.732
+636,Santiago Bueno,Santiago Ignacio Bueno,S.Bueno,10.0,€10.00m,Wolverhampton Wanderers,Defender,0.778
+633,Hugo Bueno,Hugo Bueno López,H.Bueno,12.0,€12.00m,Wolverhampton Wanderers,Defender,0.769
+682,David Møller Wolfe,David Møller Wolfe,Møller Wolfe,10.0,€10.00m,Wolverhampton Wanderers,Defender,1.0
+695,Jackson Tchatchoua,Jackson Tchatchoua,Tchatchoua,12.0,€12.00m,Wolverhampton Wanderers,Defender,1.0
+640,Pedro Lima,Pedro Cardoso de Lima,Pedro Lima,4.0,€4.00m,Wolverhampton Wanderers,Defender,1.0
+632,Matt Doherty,Matt Doherty,Doherty,1.5,€1.50m,Wolverhampton Wanderers,Defender,1.0
+643,André,André Trindade da Costa Neto,André,25.0,€25.00m,Wolverhampton Wanderers,Midfielder,1.0
+376,João Gomes,Joe Gomez,Gomez,35.0,€35.00m,Wolverhampton Wanderers,Defender,0.737
+644,Jean-Ricner Bellegarde,Jean-Ricner Bellegarde,Bellegarde,16.0,€16.00m,Wolverhampton Wanderers,Midfielder,1.0
+635,Rodrigo Gomes,Rodrigo Martins Gomes,R.Gomes,15.0,€15.00m,Wolverhampton Wanderers,Defender,0.765
+749,Mateus Mané,Mateus Mané,Mané,20.0,€20.00m,Wolverhampton Wanderers,Forward,1.0
+816,Angel Gomes,Angel Gomes,Angel,12.0,€12.00m,Wolverhampton Wanderers,Midfielder,1.0
+652,Enso González,Enso González Medina,Gonzalez,3.0,€3.00m,Wolverhampton Wanderers,Midfielder,0.788
+720,Tolu Arokodare,Tolu Arokodare,Tolu,22.0,€22.00m,Wolverhampton Wanderers,Forward,1.0
+817,Adam Armstrong,Adam Armstrong,Armstrong,8.0,€8.00m,Wolverhampton Wanderers,Forward,1.0
+642,Hee-chan Hwang,Hwang Hee-chan,Hee Chan,8.0,€8.00m,Wolverhampton Wanderers,Midfielder,0.727
+658,Nathan Fraser,Nathan Fraser,Fraser,0.6,€600k,Wolverhampton Wanderers,Forward,1.0
+183,Max Weiß,Max Weiß,Weiss,4.0,€4.00m,Burnley FC,Goalkeeper,1.0
+470,Martin Dúbravka,Martin Dúbravka,Dúbravka,0.75,€750k,Burnley FC,Goalkeeper,1.0
+185,Václav Hladký,Václav Hladký,Hladký,0.2,€200k,Burnley FC,Goalkeeper,1.0
+191,Maxime Estève,Maxime Estève,Estève,25.0,€25.00m,Burnley FC,Defender,1.0
+193,Bashir Humphreys,Bashir Humphreys,Humphreys,15.0,€15.00m,Burnley FC,Defender,1.0
+190,Hjalmar Ekdal,Hjalmar Ekdal,Ekdal,6.0,€6.00m,Burnley FC,Defender,1.0
+198,Axel Tuanzebe,Axel Tuanzebe,Tuanzebe,5.0,€5.00m,Burnley FC,Defender,1.0
+199,Joe Worrall,Joe Worrall,Worrall,3.0,€3.00m,Burnley FC,Defender,1.0
+194,Jordan Beyer,Jordan Beyer,Jordan,2.5,€2.50m,Burnley FC,Defender,1.0
+192,Quilindschy Hartman,Quilindschy Hartman,Hartman,18.0,€18.00m,Burnley FC,Defender,1.0
+195,Lucas Pires,Lucas Pires Silva,Lucas Pires,5.0,€5.00m,Burnley FC,Defender,1.0
+187,Kyle Walker,Kyle Walker,Walker,2.5,€2.50m,Burnley FC,Defender,1.0
+186,Connor Roberts,Connor Roberts,Roberts,2.5,€2.50m,Burnley FC,Defender,1.0
+676,Lesley Ugochukwu,Lesley Ugochukwu,Ugochukwu,25.0,€25.00m,Burnley FC,Midfielder,1.0
+722,Florentino,Florentino Ibrain Morris Luís,Florentino,20.0,€20.00m,Burnley FC,Midfielder,1.0
+614,James Ward-Prowse,James Ward-Prowse,Ward-Prowse,6.0,€6.00m,Burnley FC,Midfielder,1.0
+205,Josh Cullen,Josh Cullen,Cullen,6.0,€6.00m,Burnley FC,Midfielder,1.0
+209,Josh Laurent,Josh Laurent,Laurent,2.0,€2.00m,Burnley FC,Midfielder,1.0
+207,Hannibal,Hannibal Mejbri,Hannibal,16.0,€16.00m,Burnley FC,Midfielder,1.0
+592,Mike Tresor,Mikey Moore,Moore,3.0,€3.00m,Burnley FC,Midfielder,0.636
+200,Jaidon Anthony,Jaidon Anthony,Anthony,18.0,€18.00m,Burnley FC,Midfielder,1.0
+202,Jacob Bruun Larsen,Jacob Bruun Larsen,Bruun Larsen,5.0,€5.00m,Burnley FC,Midfielder,1.0
+210,Loum Tchaouna,Loum Tchaouna,Tchaouna,15.0,€15.00m,Burnley FC,Midfielder,1.0
+206,Marcus Edwards,Marcus Edwards,Edwards,8.0,€8.00m,Burnley FC,Midfielder,1.0
+215,Zian Flemming,Zian Flemming,Flemming,12.0,€12.00m,Burnley FC,Forward,1.0
+217,Lyle Foster,Lyle Foster,Foster,10.0,€10.00m,Burnley FC,Forward,1.0
+216,Zeki Amdouni,Zeki Amdouni,Amdouni,9.0,€9.00m,Burnley FC,Forward,1.0
+680,Armando Broja,Armando Broja,Broja,8.0,€8.00m,Burnley FC,Forward,1.0
+218,Ashley Barnes,Ashley Barnes,Barnes,0.2,€200k,Burnley FC,Forward,1.0
