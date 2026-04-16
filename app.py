@@ -11,7 +11,7 @@ import sys
 import json
 import re
 import dash
-from dash import html, dcc, Input, Output, State, callback_context, ALL, no_update
+from dash import html, dcc, Input, Output, State, callback_context, ALL
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -65,6 +65,65 @@ def rank_class(r):
     return "rank-other"
 
 
+def normalize_active_weights(weight_map, active_criteria):
+    """Normalize active criteria weights so they sum to 1."""
+    if not active_criteria:
+        return {}
+
+    cleaned = {
+        name: max(0.0, float(weight_map.get(name, 0.0)))
+        for name in active_criteria
+    }
+    total = sum(cleaned.values())
+
+    if total <= 0:
+        equal = 1.0 / len(active_criteria)
+        return {name: equal for name in active_criteria}
+
+    return {name: val / total for name, val in cleaned.items()}
+
+
+def rebalance_weights_after_change(weight_map, active_criteria, changed_name):
+    """Keep the changed slider value and redistribute the rest to sum to 1."""
+    if not active_criteria:
+        return {}
+
+    if len(active_criteria) == 1:
+        return {active_criteria[0]: 1.0}
+
+    if changed_name not in active_criteria:
+        return normalize_active_weights(weight_map, active_criteria)
+
+    changed_val = max(0.0, min(1.0, float(weight_map.get(changed_name, 0.0))))
+    other_names = [n for n in active_criteria if n != changed_name]
+    remaining = 1.0 - changed_val
+
+    rebalanced = {changed_name: changed_val}
+    if remaining <= 0:
+        for name in other_names:
+            rebalanced[name] = 0.0
+        return rebalanced
+
+    other_raw = {name: max(0.0, float(weight_map.get(name, 0.0))) for name in other_names}
+    other_total = sum(other_raw.values())
+
+    if other_total > 0:
+        scale = remaining / other_total
+        for name in other_names:
+            rebalanced[name] = other_raw[name] * scale
+    else:
+        equal = remaining / len(other_names)
+        for name in other_names:
+            rebalanced[name] = equal
+
+    # Guard against tiny floating-point drift so the sum remains exactly 1.
+    drift = 1.0 - sum(rebalanced.values())
+    anchor = other_names[-1] if other_names else changed_name
+    rebalanced[anchor] = max(0.0, rebalanced[anchor] + drift)
+
+    return rebalanced
+
+
 def build_pitch(formation_key, assigned_players, selected_position):
     """Build pitch with position nodes."""
     formation = FORMATIONS[formation_key]
@@ -101,6 +160,14 @@ def build_pitch(formation_key, assigned_players, selected_position):
         children.append(node)
 
     return html.Div(children, className="pitch-container")
+
+
+def position_indicator_text(formation, slot):
+    """Build indicator text for the currently selected slot."""
+    if not slot:
+        return "Click a position on the pitch"
+    pos = FORMATIONS.get(formation, {}).get(slot, {}).get("pos", "")
+    return f"{slot} · {pos}" if pos else slot
 
 
 def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remaining=9999):
@@ -288,7 +355,7 @@ def build_player_detail(player_id, position_data):
     return html.Div([
         html.Div([
             html.Div(player_name, className="detail-player-name"),
-            html.Div("Click row again to close", className="detail-hint"),
+            html.Div("Selection stays open", className="detail-hint"),
         ], className="detail-header"),
         html.Div([
             html.Div(dcc.Graph(figure=fig, config={"displayModeBar": False}),
@@ -515,7 +582,7 @@ def update_pitch(formation, assigned, selected):
 def select_position(n_clicks, formation, current):
     ctx = callback_context
     if not ctx.triggered:
-        return None, "Click a position on the pitch"
+        return current, position_indicator_text(formation, current)
 
     triggered_id = ctx.triggered[0]["prop_id"]
 
@@ -523,16 +590,16 @@ def select_position(n_clicks, formation, current):
         return None, "Click a position on the pitch"
 
     if all(n == 0 for n in (n_clicks or [])):
-        return None, "Click a position on the pitch"
+        # Pitch rerenders reset node click counters; preserve the active slot.
+        return current, position_indicator_text(formation, current)
 
     try:
         trigger = json.loads(triggered_id.split(".")[0])
         slot = trigger["index"]
     except (json.JSONDecodeError, KeyError):
-        return current, ""
+        return current, position_indicator_text(formation, current)
 
-    pos = FORMATIONS.get(formation, {}).get(slot, {}).get("pos", "")
-    return slot, f"{slot} · {pos}"
+    return slot, position_indicator_text(formation, slot)
 
 
 # Update rankings, weights, position data
@@ -591,22 +658,14 @@ def update_rankings(selected_pos, method, slider_values, check_values,
     if len(players) < 2:
         return html.Div("Not enough players."), html.Div(), {}, {}
 
-    active = list(criteria_config.keys())
-
-    # Custom weights from sliders
-    custom_weights = None
-    use_custom = "reset-weights-btn" not in triggered_id
-    if use_custom and slider_values:
-        try:
-            ids = [json.loads(t["prop_id"].split(".")[0])["index"]
-                   for t in ctx.inputs_list[2]] if ctx.inputs_list else []
-            if ids and len(ids) == len(slider_values):
-                custom_weights = {n: v for n, v in zip(ids, slider_values) if n in active}
-        except (json.JSONDecodeError, KeyError, IndexError):
-            pass
+    criteria_order = list(criteria_config.keys())
+    active = criteria_order.copy()
 
     # Active criteria from checkboxes
-    if check_values:
+    if check_values and len(check_values) == len(criteria_order):
+        active = [name for name, selected in zip(criteria_order, check_values)
+                  if selected and name in selected]
+    elif check_values:
         try:
             ids = [json.loads(t["prop_id"].split(".")[0])["index"]
                    for t in ctx.inputs_list[3]] if ctx.inputs_list else []
@@ -616,7 +675,39 @@ def update_rankings(selected_pos, method, slider_values, check_values,
             pass
 
     if not active:
-        active = list(criteria_config.keys())
+        active = criteria_order
+
+    slider_map = {}
+    if slider_values and len(slider_values) == len(criteria_order):
+        slider_map = {
+            name: float(value if value is not None else 0.0)
+            for name, value in zip(criteria_order, slider_values)
+        }
+    elif slider_values:
+        try:
+            ids = [json.loads(t["prop_id"].split(".")[0])["index"]
+                   for t in ctx.inputs_list[2]] if ctx.inputs_list else []
+            if ids and len(ids) == len(slider_values):
+                slider_map = {n: float(v if v is not None else 0.0)
+                              for n, v in zip(ids, slider_values)}
+        except (json.JSONDecodeError, KeyError, IndexError, TypeError, ValueError):
+            slider_map = {}
+
+    # Custom weights from sliders
+    custom_weights = None
+    use_custom = "reset-weights-btn" not in triggered_id
+    if use_custom and slider_map:
+        changed_name = None
+        if "weight-slider" in triggered_id:
+            try:
+                changed_name = json.loads(triggered_id.split(".")[0])["index"]
+            except (json.JSONDecodeError, KeyError, TypeError):
+                changed_name = None
+
+        if changed_name:
+            custom_weights = rebalance_weights_after_change(slider_map, active, changed_name)
+        else:
+            custom_weights = normalize_active_weights(slider_map, active)
 
     active_config = {k: v for k, v in criteria_config.items() if k in active}
 
@@ -679,9 +770,6 @@ def update_rankings(selected_pos, method, slider_values, check_values,
                                "value": float(row.get("market_value_eur_m", 0))}
              for _, row in ranked_df.iterrows()}
 
-    if "weight-slider" in triggered_id:
-        return table, no_update, cache, pos_data
-
     weights = build_weights(criteria_config, critic_w, applied_w, active)
     return table, weights, cache, pos_data
 
@@ -705,15 +793,18 @@ def select_player(row_clicks, selected_pos, current_player):
         return None
 
     if "player-row" not in triggered_id:
-        return None
+        return current_player
+
+    # Table refresh can reset row n_clicks to zero; keep the selection open.
+    if not row_clicks or all((n or 0) == 0 for n in row_clicks):
+        return current_player
 
     try:
         pid = json.loads(triggered_id.split(".")[0])["index"]
     except (json.JSONDecodeError, KeyError):
         return None
 
-    # Toggle: clicking the already-open player closes the panel
-    return None if pid == current_player else pid
+    return pid
 
 
 # Render player detail panel
