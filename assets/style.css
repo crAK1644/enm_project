@@ -1124,3 +1124,238 @@ input[type="text"]:focus {
     font-weight: 600;
     margin-right: 6px;
 }
+
+/* ── Method info panel (standalone, full width) ── */
+.method-panel-wrapper {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 0 28px 20px 28px;
+}
+.method-info-panel .method-explainer {
+    margin: 0 !important;
+    border-left: 3px solid var(--accent) !important;
+    border-radius: 0 !important;
+    background: var(--bg-secondary) !important;
+    padding: 16px 20px !important;
+}
+
+/* ── Formation pills ── */
+.formation-header {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.formation-radio {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.formation-radio label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px !important;
+    border-radius: var(--radius-full) !important;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--surface-border);
+    cursor: pointer;
+    color: var(--text-secondary) !important;
+    font-size: 11px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    margin: 0 !important;
+    transition: all var(--transition);
+}
+.formation-radio label:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary) !important;
+    border-color: var(--surface-border-hover);
+}
+.formation-radio input[type="radio"] {
+    width: 9px;
+    height: 9px;
+    border-width: 1.5px;
+    margin: 0 !important;
+}
+
+/* ── Weight name (no longer a checkbox) ── */
+.weight-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+.weight-scheme-tag {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-align: right;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Force all input text/backgrounds in dark theme ── */
+#budget-input,
+.budget-input-group input,
+.budget-panel-wrapper input,
+.budget-panel-wrapper input[type="number"] {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+    border: 1px solid var(--surface-border-hover) !important;
+}
+/* Autofill override (Chrome paints fields yellow with black text by default) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--text-primary) !important;
+    -webkit-box-shadow: 0 0 0 30px var(--bg-tertiary) inset !important;
+    caret-color: var(--text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+/* rc-slider mark labels (€50m, €200m, etc.) — force white */
+.budget-slider-section .rc-slider-mark-text,
+.budget-slider-section .rc-slider-mark-text-active,
+.budget-slider-section .rc-slider-mark span {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    opacity: 1 !important;
+}
+.budget-currency,
+.budget-percent-text,
+#spent-display,
+#remaining-display {
+    color: var(--text-primary);
+}
+
+/* Slider tooltip (rc-slider) — keep dark */
+.rc-slider-tooltip-inner {
+    background: var(--bg-elevated) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--surface-border-hover) !important;
+    box-shadow: var(--shadow-sm) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 11px !important;
+}
+.rc-slider-tooltip-arrow {
+    border-top-color: var(--bg-elevated) !important;
+    border-bottom-color: var(--bg-elevated) !important;
+}
+
+/* ── Formation dropdown (react-select v3+) ── */
+.dash-dropdown,
+.dash-dropdown * {
+    color: var(--text-primary) !important;
+}
+.dash-dropdown .Select,
+.dash-dropdown .Select-control,
+.dash-dropdown .Select-menu,
+.dash-dropdown .Select-menu-outer,
+.dash-dropdown .VirtualizedSelectOption,
+.dash-dropdown .Select-input > input {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+.dash-dropdown .Select-arrow {
+    border-color: var(--text-secondary) transparent transparent !important;
+}
+.dash-dropdown.is-open .Select-arrow {
+    border-color: transparent transparent var(--text-secondary) !important;
+}
+.dash-dropdown .Select-input > input {
+    color: var(--text-primary) !important;
+}
+
+/* ── Header radios (method + weighting) — pill style ── */
+.header-stat .dash-radio-items,
+.header-stat > div[id$="-selector"] {
+    display: flex;
+    gap: 4px;
+}
+.header-stat label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px !important;
+    border-radius: var(--radius-full) !important;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--surface-border);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-size: 11px !important;
+    color: var(--text-secondary) !important;
+    margin: 0 !important;
+}
+.header-stat label:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary) !important;
+}
+.header-stat input[type="radio"],
+.header-stat input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-tertiary);
+    background: transparent;
+    margin: 0 !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition);
+}
+.header-stat input[type="radio"]:checked,
+.header-stat input[type="checkbox"]:checked {
+    border-color: var(--accent);
+    background: radial-gradient(circle, var(--accent) 0 40%, transparent 45% 100%);
+}
+
+/* ── Generic checkbox/radio styling (budget filter, etc.) ── */
+input[type="checkbox"],
+input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--text-tertiary);
+    background: var(--bg-tertiary) !important;
+    cursor: pointer;
+    margin: 0 6px 0 0 !important;
+    vertical-align: middle;
+    transition: all var(--transition);
+    padding: 0 !important;
+}
+input[type="radio"] {
+    border-radius: 50%;
+}
+input[type="checkbox"] {
+    border-radius: 3px;
+}
+input[type="radio"]:checked {
+    border-color: var(--accent);
+    background: radial-gradient(circle, var(--accent) 0 40%, var(--bg-tertiary) 45% 100%) !important;
+}
+input[type="checkbox"]:checked {
+    border-color: var(--accent);
+    background: var(--accent) !important;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 8.5L7 12L13 4'/></svg>") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 12px 12px !important;
+}
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-muted);
+}
+
+.budget-filter-check label {
+    display: inline-flex !important;
+    align-items: center;
+    color: var(--text-secondary) !important;
+    cursor: pointer;
+}
+
+/* Number-input spinners — dark theme */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    filter: invert(0.7);
+}

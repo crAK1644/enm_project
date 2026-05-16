@@ -333,20 +333,12 @@ def build_weights(criteria_config, objective_w, applied_w, active_criteria, weig
     items = []
     scheme_label = "Entropy" if weighting == "entropy" else "CRITIC"
     for name, info in criteria_config.items():
-        active = name in active_criteria
         cw = objective_w.get(name, 0)
         aw = applied_w.get(name, cw)
 
         items.append(html.Div([
             html.Div([
-                html.Div([
-                    dcc.Checklist(
-                        id={"type": "criteria-check", "index": name},
-                        options=[{"label": info["label"], "value": name}],
-                        value=[name] if active else [],
-                        style={"display": "inline-block"},
-                    ),
-                ], style={"flex": "1"}),
+                html.Div(info["label"], className="weight-name", style={"flex": "1"}),
                 html.Div(f"{aw:.3f}", className="weight-value",
                          id={"type": "weight-display", "index": name}),
             ], className="weight-label"),
@@ -355,25 +347,35 @@ def build_weights(criteria_config, objective_w, applied_w, active_criteria, weig
                 min=0, max=1, step=0.01, value=aw,
                 marks=None,
                 tooltip={"placement": "bottom", "always_visible": False},
-                disabled=not active,
             ),
             html.Div(f"{scheme_label}: {cw:.3f}",
-                     style={"fontSize": "9px", "color": "#6b6b76",
-                            "textAlign": "right", "marginTop": "2px"}),
+                     className="weight-scheme-tag"),
         ], className="weight-item"))
 
     return html.Div(items, className="weight-grid")
 
 
 def build_player_detail(player_id, position_data):
-    """Build player detail panel: radar chart + per-criterion breakdown bars."""
-    if not position_data or player_id not in position_data.get("players", {}):
-        return None
+    """Build player detail panel: radar chart + per-criterion breakdown bars.
 
-    player_scores = position_data["players"][player_id]
+    Renders even without a selected player — falls back to position averages
+    so the infographic is always visible once a position is chosen.
+    """
+    if not position_data or not position_data.get("criteria_labels"):
+        return html.Div([
+            html.Div("Position infographic", className="detail-player-name"),
+            html.Div("Select a position to view the radar.", className="detail-hint"),
+        ], className="player-detail-content", style={"padding": "16px 18px"})
+
     avg_scores    = position_data.get("avg", {})
     labels        = position_data.get("criteria_labels", {})
-    player_name   = position_data.get("names", {}).get(player_id, "Player")
+    has_player    = bool(player_id) and player_id in position_data.get("players", {})
+    if has_player:
+        player_scores = position_data["players"][player_id]
+        player_name   = position_data.get("names", {}).get(player_id, "Player")
+    else:
+        player_scores = avg_scores
+        player_name   = "Position average"
     criteria_keys = list(labels.keys())
     criteria_names = [labels[k] for k in criteria_keys]
 
@@ -386,11 +388,12 @@ def build_player_detail(player_id, position_data):
     av_ring = av_vals + [av_vals[0]]
 
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=p_ring, theta=theta, fill="toself", name=player_name,
-        line=dict(color="#d4845a", width=2),
-        fillcolor="rgba(212,132,90,0.18)",
-    ))
+    if has_player:
+        fig.add_trace(go.Scatterpolar(
+            r=p_ring, theta=theta, fill="toself", name=player_name,
+            line=dict(color="#d4845a", width=2),
+            fillcolor="rgba(212,132,90,0.18)",
+        ))
     fig.add_trace(go.Scatterpolar(
         r=av_ring, theta=theta, fill="toself", name="Position avg",
         line=dict(color="#60a5fa", width=1.5, dash="dot"),
@@ -429,10 +432,11 @@ def build_player_detail(player_id, position_data):
             html.Span(f"{pv:.2f}", className="breakdown-val"),
         ], className="breakdown-item"))
 
+    hint = "Click another player to compare" if has_player else "Click a player for their profile"
     return html.Div([
         html.Div([
             html.Div(player_name, className="detail-player-name"),
-            html.Div("Selection stays open", className="detail-hint"),
+            html.Div(hint, className="detail-hint"),
         ], className="detail-header"),
         html.Div([
             html.Div(dcc.Graph(figure=fig, config={"displayModeBar": False}),
@@ -461,7 +465,6 @@ app.layout = html.Div([
     # ── Header ──
     html.Div([
         html.Div([
-            html.Span("⚽", className="app-title-icon"),
             html.Span("Transfer Window Manager"),
         ], className="app-title"),
 
@@ -559,14 +562,15 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div("Formation", className="panel-title"),
-                dcc.Dropdown(
+                dcc.RadioItems(
                     id="formation-dropdown",
                     options=[{"label": f, "value": f} for f in FORMATIONS.keys()],
                     value="4-3-3",
-                    clearable=False,
-                    style={"width": "150px"},
+                    inline=True,
+                    className="formation-radio",
+                    labelStyle={"marginRight": "0"},
                 ),
-            ], className="panel-header", style={"gap": "16px"}),
+            ], className="panel-header formation-header"),
             html.Div([
                 html.Div(id="pitch-display"),
                 html.Div([
@@ -614,11 +618,20 @@ app.layout = html.Div([
             html.Div([
                 html.Div(id="position-indicator", className="position-indicator-bar"),
             ], className="position-bar"),
-            html.Div(id="method-explanation", className="method-explainer"),
             html.Div(id="ranking-container", className="panel-body ranking-body"),
             html.Div(id="player-detail-panel"),
         ], className="panel"),
     ], className="main-container"),
+
+    # ── Method Info Panel ──
+    html.Div([
+        html.Div([
+            html.Div([
+                html.Div("Method & Weighting", className="panel-title"),
+            ], className="panel-header"),
+            html.Div(id="method-explanation", className="panel-body method-explainer"),
+        ], className="panel method-info-panel"),
+    ], className="method-panel-wrapper"),
 
     # ── Weights Panel ──
     html.Div([
@@ -709,7 +722,6 @@ def select_position(n_clicks, formation, current):
      Input("method-selector", "value"),
      Input("weighting-selector", "value"),
      Input({"type": "weight-slider", "index": ALL}, "value"),
-     Input({"type": "criteria-check", "index": ALL}, "value"),
      Input("reset-weights-btn", "n_clicks"),
      Input("store-assigned-players", "data"),
      Input("search-input", "value"),
@@ -717,7 +729,7 @@ def select_position(n_clicks, formation, current):
     [State("formation-dropdown", "value"),
      State("store-budget", "data")],
 )
-def update_rankings(selected_pos, method, weighting, slider_values, check_values,
+def update_rankings(selected_pos, method, weighting, slider_values,
                     reset_clicks, assigned, search, budget_filter_val,
                     formation, budget_store):
     ctx = callback_context
@@ -769,22 +781,6 @@ def update_rankings(selected_pos, method, weighting, slider_values, check_values
     criteria_order = list(criteria_config.keys())
     active = criteria_order.copy()
 
-    # Active criteria from checkboxes
-    if check_values and len(check_values) == len(criteria_order):
-        active = [name for name, selected in zip(criteria_order, check_values)
-                  if selected and name in selected]
-    elif check_values:
-        try:
-            ids = [json.loads(t["prop_id"].split(".")[0])["index"]
-                   for t in ctx.inputs_list[4]] if ctx.inputs_list else []
-            if ids:
-                active = [n for n, v in zip(ids, check_values) if v and n in v]
-        except (json.JSONDecodeError, KeyError, IndexError):
-            pass
-
-    if not active:
-        active = criteria_order
-
     slider_map = {}
     if slider_values and len(slider_values) == len(criteria_order):
         slider_map = {
@@ -801,21 +797,26 @@ def update_rankings(selected_pos, method, weighting, slider_values, check_values
         except (json.JSONDecodeError, KeyError, IndexError, TypeError, ValueError):
             slider_map = {}
 
-    # Custom weights from sliders
+    # Custom weights from sliders.
+    # Triggers that should DROP slider values and recompute fresh objective weights:
+    #   - reset button, position change, weighting-scheme change.
+    # Triggers that SHOULD keep current sliders (so unrelated controls don't
+    # nuke a tuned weight config): budget, search, assigned-players change.
+    # Slider change → rebalance with the moved slider preserved.
+    fresh_triggers = ("reset-weights-btn",
+                      "store-selected-position",
+                      "weighting-selector")
+    use_custom = not any(t in triggered_id for t in fresh_triggers)
     custom_weights = None
-    use_custom = "reset-weights-btn" not in triggered_id
     if use_custom and slider_map:
-        changed_name = None
         if "weight-slider" in triggered_id:
             try:
                 changed_name = json.loads(triggered_id.split(".")[0])["index"]
+                custom_weights = rebalance_weights_after_change(slider_map, active, changed_name)
             except (json.JSONDecodeError, KeyError, TypeError):
-                changed_name = None
-
-        if changed_name:
-            custom_weights = rebalance_weights_after_change(slider_map, active, changed_name)
+                custom_weights = slider_map
         else:
-            custom_weights = normalize_active_weights(slider_map, active)
+            custom_weights = slider_map
 
     active_config = {k: v for k, v in criteria_config.items() if k in active}
 
@@ -925,8 +926,6 @@ def select_player(row_clicks, selected_pos, current_player):
      Input("store-selected-position", "data")],
 )
 def update_method_explanation(method, weighting, selected_pos):
-    if not selected_pos:
-        return None
     return build_method_explanation(method, weighting)
 
 
@@ -937,7 +936,7 @@ def update_method_explanation(method, weighting, selected_pos):
      Input("store-position-data", "data")],
 )
 def update_player_detail(player_id, position_data):
-    if not player_id or not position_data:
+    if not position_data:
         return None
     return build_player_detail(player_id, position_data)
 

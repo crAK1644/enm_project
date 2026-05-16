@@ -93,6 +93,8 @@ def compute_per90(df):
         "assists_per90": "assists",
         "expected_goals_per90": "expected_goals",
         "expected_assists_per90": "expected_assists",
+        "expected_goal_involvements_per90": "expected_goal_involvements",
+        "expected_goals_conceded_per90_calc": "expected_goals_conceded",
         "yellow_cards_per90": "yellow_cards",
         "red_cards_per90": "red_cards",
         "tackles_per90": "tackles",
@@ -105,6 +107,7 @@ def compute_per90(df):
         "threat_per90": "threat",
         "defensive_contribution_per90_calc": "defensive_contribution",
         "recoveries_per90": "recoveries",
+        "bps_per90": "bps",
     }
 
     for new_col, src_col in per90_mappings.items():
@@ -131,6 +134,37 @@ def compute_per90(df):
         df["defensive_contribution_per90"] = df["defensive_contribution_per_90"]
     else:
         df["defensive_contribution_per90"] = df.get("defensive_contribution_per90_calc", 0)
+
+    # Goals-per-xG: finishing efficiency. >1 = overperforming, <1 = underperforming.
+    # Guard zero/NaN xG so we don't divide by zero — players with no xG get 0.
+    if "goals_scored" in df.columns and "expected_goals" in df.columns:
+        xg = df["expected_goals"].astype(float)
+        goals = df["goals_scored"].astype(float)
+        df["goals_per_xg"] = np.where(xg > 0.1, goals / xg, 0.0)
+
+    # xGI per 90 — combined offensive contribution (xG + xA). Prefer the FPL-
+    # provided per-90 column when present; otherwise use our own calculation.
+    if "expected_goal_involvements_per_90" in df.columns:
+        df["expected_goal_involvements_per90"] = df["expected_goal_involvements_per_90"]
+
+    # xGC per 90 — defensive workload faced. Prefer FPL's own per-90 column.
+    if "expected_goals_conceded_per_90" in df.columns:
+        df["expected_goals_conceded_per90"] = df["expected_goals_conceded_per_90"]
+    else:
+        df["expected_goals_conceded_per90"] = df.get("expected_goals_conceded_per90_calc", 0)
+
+    # Goalkeeper-specific: Save % and Goals Prevented (xGC overperformance).
+    # Save % = saves / (saves + goals_conceded). Modal GK metric in analytics.
+    if "saves" in df.columns and "goals_conceded" in df.columns:
+        denom = df["saves"].astype(float) + df["goals_conceded"].astype(float)
+        df["save_percentage"] = np.where(denom > 0, df["saves"].astype(float) / denom, 0.0)
+
+    # Goals Prevented per 90 = (xGC - GC) / minutes * 90. Positive = keeper
+    # is saving more than expected. The canonical post-shot-xG-style metric
+    # adapted to the columns we have.
+    if "expected_goals_conceded" in df.columns and "goals_conceded" in df.columns:
+        diff = df["expected_goals_conceded"].astype(float) - df["goals_conceded"].astype(float)
+        df["goals_prevented_per90"] = (diff / minutes) * 90
 
     return df
 
