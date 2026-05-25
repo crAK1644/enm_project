@@ -7,6 +7,74 @@ import numpy as np
 import pandas as pd
 
 
+def _ahp(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> pd.Series:
+    X = df.values
+    benefit_mask = criteria_types == 1
+    cost_mask = criteria_types == -1
+    norm = np.empty_like(X, dtype=float)
+    
+    ben_sum = X[:, benefit_mask].sum(axis=0)
+    norm[:, benefit_mask] = X[:, benefit_mask] / np.maximum(1e-10, ben_sum)
+    
+    X_cost = np.where(X[:, cost_mask] == 0, 1e-10, X[:, cost_mask])
+    inv_cost = 1.0 / X_cost
+    norm[:, cost_mask] = inv_cost / np.maximum(1e-10, inv_cost.sum(axis=0))
+    
+    scores = norm @ weights
+    return pd.Series(scores, index=df.index)
+
+def _topsis(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> pd.Series:
+    matrix = df.values
+    norm_matrix = matrix / np.maximum(1e-10, np.sqrt((matrix**2).sum(axis=0)))
+    weighted_matrix = norm_matrix * weights
+    
+    ideal_best = np.where(criteria_types == 1, np.max(weighted_matrix, axis=0), np.min(weighted_matrix, axis=0))
+    ideal_worst = np.where(criteria_types == 1, np.min(weighted_matrix, axis=0), np.max(weighted_matrix, axis=0))
+    
+    dist_best = np.sqrt(np.sum((weighted_matrix - ideal_best)**2, axis=1))
+    dist_worst = np.sqrt(np.sum((weighted_matrix - ideal_worst)**2, axis=1))
+    
+    scores = dist_worst / np.maximum(1e-10, dist_best + dist_worst)
+    return pd.Series(scores, index=df.index)
+
+def _saw(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> pd.Series:
+    matrix = df.values
+    norm_matrix = np.where(criteria_types == 1, 
+                           matrix / np.maximum(1e-10, np.max(matrix, axis=0)), 
+                           np.min(matrix, axis=0) / np.maximum(1e-10, matrix))
+    scores = np.dot(norm_matrix, weights)
+    return pd.Series(scores, index=df.index)
+
+def _wp(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> pd.Series:
+    epsilon = 1e-5
+    matrix = df.values + epsilon
+    norm_matrix = np.where(criteria_types == 1, 
+                           matrix / np.maximum(1e-10, np.max(matrix, axis=0)), 
+                           np.min(matrix, axis=0) / np.maximum(1e-10, matrix))
+    scores = np.prod(norm_matrix ** weights, axis=1)
+    return pd.Series(scores, index=df.index)
+
+def calculate_mcdm(method_name: str, matrix: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray):
+    method_upper = method_name.upper().strip()
+    if method_upper == 'BORDA CONSENSUS':
+        return _borda_consensus_from_methods(matrix, weights, criteria_types)
+        
+    methods = {
+        'PROMETHEE II': lambda: promethee_ii(matrix.values, weights, criteria_types),
+        'VIKOR': lambda: vikor(matrix.values, weights, criteria_types),
+        'AHP': lambda: _ahp(matrix, weights, criteria_types),
+        'TOPSIS': lambda: _topsis(matrix, weights, criteria_types),
+        'SAW': lambda: _saw(matrix, weights, criteria_types),
+        'WP': lambda: _wp(matrix, weights, criteria_types)
+    }
+    
+    for key in methods:
+        if key.upper() == method_upper:
+            return methods[key]()
+    return methods[method_name]()
+
+
+
 # ─────────────────────────────────────────────────────────────
 # CRITIC: Objective weight determination
 # ─────────────────────────────────────────────────────────────
@@ -69,6 +137,32 @@ def critic_weights(matrix, types):
         weights = info / total
     
     return weights
+
+
+def shannon_entropy_weights(df, criteria_types, epsilon=1e-12):
+    X = df.to_numpy(dtype=float) if isinstance(df, pd.DataFrame) else np.asarray(df, dtype=float)
+    t = np.asarray(criteria_types, dtype=float)
+    benefit_mask = t == 1
+    cost_mask = t == -1
+    norm = np.empty_like(X, dtype=float)
+    
+    ben_sum = X[:, benefit_mask].sum(axis=0)
+    norm[:, benefit_mask] = X[:, benefit_mask] / np.maximum(epsilon, ben_sum)
+    
+    inv_cost = 1.0 / (X[:, cost_mask] + epsilon)
+    norm[:, cost_mask] = inv_cost / np.maximum(epsilon, inv_cost.sum(axis=0))
+    
+    P = norm + epsilon
+    m = X.shape[0]
+    k = 1.0 / np.log(m) if m > 1 else 1.0
+    entropy = -k * np.sum(P * np.log(P), axis=0)
+    diversification = 1.0 - entropy
+    weights = diversification / np.maximum(epsilon, diversification.sum())
+    return weights
+
+def hybridize_weights(critic_w: np.ndarray, shannon_w: np.ndarray, alpha: float = 0.5) -> np.ndarray:
+    alpha = max(0.0, min(1.0, alpha))
+    return alpha * critic_w + (1.0 - alpha) * shannon_w
 
 
 # ─────────────────────────────────────────────────────────────
@@ -218,11 +312,40 @@ def vikor(matrix, weights, types, v=0.5):
     return Q, S, R, rank_positions
 
 
+def borda_consensus(rank_df):
+    R = rank_df.to_numpy(dtype=float)
+    n_alternatives = R.shape[0]
+    points = n_alternatives - R + 1
+    borda_scores = points.sum(axis=1)
+    return pd.Series(
+        borda_scores,
+        index=rank_df.index
+    ).sort_values(ascending=False)
+
+
+def _borda_consensus_from_methods(matrix, weights, criteria_types):
+    base_methods = ['PROMETHEE II', 'VIKOR', 'AHP', 'TOPSIS', 'SAW', 'WP']
+    rank_matrix = pd.DataFrame(index=matrix.index)
+    for m in base_methods:
+        result = calculate_mcdm(m, matrix, weights, criteria_types)
+        if m == 'PROMETHEE II':
+            scores, _ = result
+            ranks = pd.Series(scores, index=matrix.index).rank(ascending=False, method='min').astype(int)
+        elif m == 'VIKOR':
+            Q, _, _, _ = result
+            ranks = pd.Series(Q, index=matrix.index).rank(ascending=True, method='min').astype(int)
+        else:
+            ranks = result.rank(ascending=False, method='min').astype(int)
+        rank_matrix[m] = ranks
+    borda_scores = borda_consensus(rank_matrix)
+    return borda_scores.reindex(matrix.index)
+
+
 # ─────────────────────────────────────────────────────────────
 # Unified ranking function
 # ─────────────────────────────────────────────────────────────
 
-def rank_players(player_df, criteria_config, method="promethee", custom_weights=None):
+def rank_players(player_df, criteria_config, method="PROMETHEE II", custom_weights=None, alpha=0.5):
     """
     Rank players using the specified MCDM method.
     
@@ -231,6 +354,7 @@ def rank_players(player_df, criteria_config, method="promethee", custom_weights=
         criteria_config: dict               - from POSITION_CRITERIA
         method:          str                - "promethee" or "vikor"
         custom_weights:  dict or None       - custom weights {criteria_name: weight}
+        alpha:           float              - compromise weight blending factor (0 = Entropy, 1 = CRITIC)
     
     Returns:
         pd.DataFrame with added rank and score columns
@@ -255,38 +379,53 @@ def rank_players(player_df, criteria_config, method="promethee", custom_weights=
     # Calculate CRITIC weights
     critic_w = critic_weights(matrix, types)
     
-    # Use custom weights if provided, otherwise use CRITIC
+    # Calculate Shannon Entropy weights
+    shannon_w = shannon_entropy_weights(matrix, types)
+    
+    # Hybridize weights
+    hybrid_w = hybridize_weights(critic_w, shannon_w, alpha=alpha)
+    
+    # Use custom weights if provided, otherwise use hybrid weights
     if custom_weights:
-        weights = np.array([custom_weights.get(c, critic_w[i]) for i, c in enumerate(criteria_names)])
+        weights = np.array([custom_weights.get(c, hybrid_w[i]) for i, c in enumerate(criteria_names)])
         # Normalize
         w_sum = weights.sum()
         if w_sum > 0:
             weights = weights / w_sum
         else:
-            weights = critic_w
+            weights = hybrid_w
     else:
-        weights = critic_w
+        weights = hybrid_w
     
     # Apply MCDM method
     result = player_df.copy()
     
-    if method == "promethee":
-        scores, ranks = promethee_ii(matrix, weights, types)
+    matrix_df = pd.DataFrame(matrix, index=player_df.index, columns=columns)
+    scores_data = calculate_mcdm(method, matrix_df, weights, types)
+    
+    # Map the output scores to result columns based on method
+    method_normalized = method.upper().replace("_", " ").replace("-", " ")
+    if "PROMETHEE" in method_normalized:
+        scores, ranks = scores_data
         result["score"] = scores
         result["rank"] = ranks
-    elif method == "vikor":
-        Q, S, R, ranks = vikor(matrix, weights, types)
-        result["score"] = 1 - Q  # Invert so higher = better (for display consistency)
+    elif "VIKOR" in method_normalized:
+        Q, S, R, ranks = scores_data
+        result["score"] = 1 - Q  # Invert so higher = better
         result["q_value"] = Q
         result["rank"] = ranks
     else:
-        raise ValueError(f"Unknown method: {method}")
+        result["score"] = scores_data.values
+        ranks = np.empty(len(scores_data), dtype=int)
+        ranks[np.argsort(-scores_data.values)] = np.arange(1, len(scores_data) + 1)
+        result["rank"] = ranks
+
     
-    # Add CRITIC weights info
-    result.attrs["critic_weights"] = dict(zip(criteria_names, critic_w))
+    # Add Hybrid weights info
+    result.attrs["critic_weights"] = dict(zip(criteria_names, hybrid_w))
     result.attrs["applied_weights"] = dict(zip(criteria_names, weights))
     
     # Sort by rank
     result = result.sort_values("rank")
     
-    return result, dict(zip(criteria_names, critic_w)), dict(zip(criteria_names, weights))
+    return result, dict(zip(criteria_names, hybrid_w)), dict(zip(criteria_names, weights))

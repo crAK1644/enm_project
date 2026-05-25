@@ -391,15 +391,22 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div("Method", className="header-stat-label"),
-                dcc.RadioItems(
+                dcc.Dropdown(
                     id="method-selector",
                     options=[
-                        {"label": " PROMETHEE", "value": "promethee"},
-                        {"label": " VIKOR",     "value": "vikor"},
+                        {"label": "PROMETHEE II", "value": "PROMETHEE II"},
+                        {"label": "VIKOR", "value": "VIKOR"},
+                        {"label": "AHP", "value": "AHP"},
+                        {"label": "TOPSIS", "value": "TOPSIS"},
+                        {"label": "SAW", "value": "SAW"},
+                        {"label": "WP", "value": "WP"},
+                        {"label": "Borda Consensus", "value": "Borda Consensus"},
                     ],
-                    value="promethee",
-                    inline=True,
-                    style={"fontSize": "12px"},
+                    value="PROMETHEE II",
+                    clearable=False,
+                    searchable=False,
+                    className="custom-grey-dropdown",
+                    style={"width": "160px", "fontSize": "12px", "color": "#000"},
                 ),
             ], className="header-stat"),
 
@@ -719,7 +726,17 @@ def update_rankings(selected_pos, method, slider_values, check_values,
         return html.Div(f"Error: {e}"), html.Div(), {}, {}
 
     # Compute alternate method ranks for stability badge
-    alt_method = "vikor" if method == "promethee" else "promethee"
+    alt_map = {
+        "PROMETHEE II": "VIKOR",
+        "VIKOR": "PROMETHEE II",
+        "AHP": "TOPSIS",
+        "TOPSIS": "AHP",
+        "SAW": "WP",
+        "WP": "SAW",
+        "Borda Consensus": "PROMETHEE II",
+    }
+    alt_method = alt_map.get(method, "PROMETHEE II")
+
     try:
         alt_ranked, _, _ = rank_players(players, active_config, method=alt_method,
                                         custom_weights=custom_weights)

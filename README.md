@@ -71,16 +71,34 @@ This scrapes all 20 Premier League team pages on Transfermarkt and writes `data/
 
 Only players with **450+ minutes played** are included in rankings (roughly 5 full matches).
 
-## MCDM Methods
+## MCDM & Consensus Methods
 
-### CRITIC (weight determination)
-Weights are derived from the decision matrix itself — criteria that vary a lot across players and correlate little with other criteria get higher weights. Weights are recomputed each time a position is selected. You can override any weight with the sliders; the app will normalize and re-rank without snapping the slider back.
+### ⚖️ Objective Weighting & Hybridization (Shannon-CRITIC)
+Criteria weights are determined objectively from the data, combining two complementary Operations Research methodologies:
+1. **CRITIC:** Focuses on inter-criteria correlation and column variance.
+2. **Shannon Entropy:** Measures informational uncertainty and diversification degree.
+   * *Epsilon Limit:* A structural probability offset of `epsilon = 1e-12` is applied to satisfy logarithmic constraints and prevent domain errors.
+3. **$\alpha$-Blending Interface:** Blends both models using a compromise slider:
+   $$W_{h} = \alpha W_{c} + (1 - \alpha) W_{e}$$
 
-### PROMETHEE II
-Pairwise outranking method. Each player is compared against every other candidate across all criteria. The net outranking flow (Φ) gives a complete ranking — higher Φ is better.
+---
 
-### VIKOR
-Compromise ranking method. Finds the solution closest to the ideal, balancing group utility (S) and individual regret (R) via the Q-value. Lower Q is better; the app inverts it for consistent display (higher = better).
+### 🚀 Vectorized Mathematical Engines (All $O(m \times n)$ Complexity)
+All six algorithms are fully vectorized using NumPy and Pandas for rapid runtime calculations:
+- **PROMETHEE II:** Outranking method calculating Net Flows ($\Phi$).
+- **VIKOR:** Compromise ranking balancing utility and regret (inverted as $1.0 - Q$ for display uniformity).
+- **AHP (Analytic Hierarchy Process):** Derives composite alternatives' priority vectors.
+- **TOPSIS:** Spatial closeness calculation matching ideal positive and negative solutions.
+- **SAW (Simple Additive Weighting):** Fast linear min-max aggregation.
+- **WP (Weighted Product):** Product scoring using exponential weights.
+  * *Epsilon Limit:* Extends numerical stability using an offset matrix boundary of `epsilon = 1e-5` to completely avoid zero-base negative exponent division-by-zero crashes on cost attributes.
+
+---
+
+### 🗳️ Master Borda Count Consensus Aggregator
+Synthesizes the ordinal outputs from all 6 active algorithms into a single mathematically sound consensus team recommendation. Point distribution is computed as:
+$$\text{Points} = (\text{Alternatives}) - \text{Rank} + 1$$
+Consensus points are summed across the 6 models to produce a unified compromise squad.
 
 ## Position Criteria
 
