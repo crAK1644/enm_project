@@ -6,6 +6,44 @@ Produces a clean DataFrame ready for MCDM evaluation.
 import pandas as pd
 import numpy as np
 import os
+import re
+
+
+# Transfermarkt position strings → canonical role codes used in ROLE_CRITERIA.
+TM_POSITION_TO_ROLE = {
+    "goalkeeper": "GK",
+    "centre-back": "CB",
+    "center-back": "CB",
+    "left-back": "LB",
+    "right-back": "RB",
+    "defensive midfield": "CDM",
+    "central midfield": "CM",
+    "attacking midfield": "CAM",
+    "left midfield": "LM",
+    "right midfield": "RM",
+    "left winger": "LW",
+    "right winger": "RW",
+    "centre-forward": "ST",
+    "center-forward": "ST",
+    "second striker": "ST",
+    "forward": "ST",
+}
+
+# Fallback: broad FPL position → a single canonical role when no TM tag exists.
+BROAD_TO_ROLE = {
+    "Goalkeeper": "GK",
+    "Defender": "CB",
+    "Midfielder": "CM",
+    "Forward": "ST",
+}
+
+
+def normalize_tm_position(raw):
+    """Map a Transfermarkt position string to a canonical role code, or None."""
+    if not raw or (isinstance(raw, float) and np.isnan(raw)):
+        return None
+    key = re.sub(r"\s+", " ", str(raw).strip().lower())
+    return TM_POSITION_TO_ROLE.get(key)
 
 
 def load_players(project_dir):
@@ -55,6 +93,8 @@ def compute_per90(df):
         "assists_per90": "assists",
         "expected_goals_per90": "expected_goals",
         "expected_assists_per90": "expected_assists",
+        "expected_goal_involvements_per90": "expected_goal_involvements",
+        "expected_goals_conceded_per90_calc": "expected_goals_conceded",
         "yellow_cards_per90": "yellow_cards",
         "red_cards_per90": "red_cards",
         "tackles_per90": "tackles",
@@ -67,6 +107,7 @@ def compute_per90(df):
         "threat_per90": "threat",
         "defensive_contribution_per90_calc": "defensive_contribution",
         "recoveries_per90": "recoveries",
+        "bps_per90": "bps",
     }
 
     for new_col, src_col in per90_mappings.items():
@@ -93,6 +134,37 @@ def compute_per90(df):
         df["defensive_contribution_per90"] = df["defensive_contribution_per_90"]
     else:
         df["defensive_contribution_per90"] = df.get("defensive_contribution_per90_calc", 0)
+
+    # Goals-per-xG: finishing efficiency. >1 = overperforming, <1 = underperforming.
+    # Guard zero/NaN xG so we don't divide by zero — players with no xG get 0.
+    if "goals_scored" in df.columns and "expected_goals" in df.columns:
+        xg = df["expected_goals"].astype(float)
+        goals = df["goals_scored"].astype(float)
+        df["goals_per_xg"] = np.where(xg > 0.1, goals / xg, 0.0)
+
+    # xGI per 90 — combined offensive contribution (xG + xA). Prefer the FPL-
+    # provided per-90 column when present; otherwise use our own calculation.
+    if "expected_goal_involvements_per_90" in df.columns:
+        df["expected_goal_involvements_per90"] = df["expected_goal_involvements_per_90"]
+
+    # xGC per 90 — defensive workload faced. Prefer FPL's own per-90 column.
+    if "expected_goals_conceded_per_90" in df.columns:
+        df["expected_goals_conceded_per90"] = df["expected_goals_conceded_per_90"]
+    else:
+        df["expected_goals_conceded_per90"] = df.get("expected_goals_conceded_per90_calc", 0)
+
+    # Goalkeeper-specific: Save % and Goals Prevented (xGC overperformance).
+    # Save % = saves / (saves + goals_conceded). Modal GK metric in analytics.
+    if "saves" in df.columns and "goals_conceded" in df.columns:
+        denom = df["saves"].astype(float) + df["goals_conceded"].astype(float)
+        df["save_percentage"] = np.where(denom > 0, df["saves"].astype(float) / denom, 0.0)
+
+    # Goals Prevented per 90 = (xGC - GC) / minutes * 90. Positive = keeper
+    # is saving more than expected. The canonical post-shot-xG-style metric
+    # adapted to the columns we have.
+    if "expected_goals_conceded" in df.columns and "goals_conceded" in df.columns:
+        diff = df["expected_goals_conceded"].astype(float) - df["goals_conceded"].astype(float)
+        df["goals_prevented_per90"] = (diff / minutes) * 90
 
     return df
 
@@ -147,11 +219,14 @@ def build_player_database(project_dir, min_minutes=450):
     # Filter by minimum minutes played
     merged = merged[merged["minutes"] >= min_minutes].copy()
 
-    # Load and merge market values
+    # Load and merge market values (+ main_position if the scraper produced it)
     mv = load_market_values(project_dir)
     if mv is not None:
+        mv_cols = ["player_id", "market_value_eur_m", "team_tm"]
+        if "main_position" in mv.columns:
+            mv_cols.append("main_position")
         merged = merged.merge(
-            mv[["player_id", "market_value_eur_m", "team_tm"]],
+            mv[mv_cols],
             left_on="id",
             right_on="player_id",
             how="left",
@@ -161,6 +236,19 @@ def build_player_database(project_dir, min_minutes=450):
         # Use FPL cost as fallback (in £ tenths of millions, e.g. 146 = £14.6m)
         merged["market_value_eur_m"] = merged["now_cost"] / 10.0
         merged["team_tm"] = ""
+
+    # Derive canonical role per player. Prefer the scraped TM main_position;
+    # fall back to a single role from broad FPL position when missing/unmapped.
+    # role_from_fallback flags rows where role came from BROAD_TO_ROLE, so the
+    # UI can include them as eligible regardless of the slot's specific pool.
+    if "main_position" in merged.columns:
+        merged["role"] = merged["main_position"].apply(normalize_tm_position)
+    else:
+        merged["role"] = None
+    merged["role_from_fallback"] = merged["role"].isna()
+    merged.loc[merged["role_from_fallback"], "role"] = (
+        merged.loc[merged["role_from_fallback"], "position"].map(BROAD_TO_ROLE)
+    )
 
     # Create display name
     merged["display_name"] = merged["web_name"]
@@ -180,5 +268,24 @@ def build_player_database(project_dir, min_minutes=450):
 
 
 def get_position_players(db, position):
-    """Get all players for a given position."""
+    """Get all players for a given broad FPL position."""
     return db[db["position"] == position].copy()
+
+
+def get_role_players(db, role_pool, broad_fallback=None):
+    """
+    Filter players eligible for a slot.
+
+    role_pool: iterable of canonical role codes (e.g. ["CDM", "CM"]).
+    broad_fallback: if given, players whose role is not in the pool but whose
+        broad FPL position matches are included — keeps the slot usable until
+        the Transfermarkt scraper has been re-run with main_position scraping.
+    """
+    pool = set(role_pool or [])
+    in_pool = db["role"].isin(pool)
+    if broad_fallback and "role_from_fallback" in db.columns:
+        # Untagged players whose broad FPL position matches the slot also qualify,
+        # so the slot isn't empty until the Transfermarkt scraper has run.
+        broad_match = db["role_from_fallback"] & (db["position"] == broad_fallback)
+        return db[in_pool | broad_match].copy()
+    return db[in_pool].copy()
