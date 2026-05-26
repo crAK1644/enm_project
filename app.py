@@ -511,23 +511,21 @@ app.layout = html.Div([
                     value="promethee",
                     clearable=False,
                     searchable=False,
-                    className="custom-grey-dropdown",
-                    style={"width": "180px", "fontSize": "12px", "color": "#000"},
+                    className="custom-grey-dropdown method-dropdown",
                 ),
-            ], className="header-stat"),
+            ], className="header-stat header-stat-method"),
 
             html.Div([
                 html.Div("Weighting", className="header-stat-label"),
                 dcc.RadioItems(
                     id="weighting-selector",
                     options=[
-                        {"label": " CRITIC",  "value": "critic"},
-                        {"label": " Entropy", "value": "entropy"},
+                        {"label": "CRITIC",  "value": "critic"},
+                        {"label": "Entropy", "value": "entropy"},
                     ],
-value="critic",
-inline=True,
-style={"fontSize": "12px", "color": "#ffffff"},
-labelStyle={"color": "#ffffff", "marginRight": "10px"},
+                    value="critic",
+                    inline=True,
+                    className="weighting-segmented",
                 ),
             ], className="header-stat"),
 
