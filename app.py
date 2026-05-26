@@ -23,6 +23,7 @@ sys.path.insert(0, PROJECT_DIR)
 from mcdm.data_processor import build_player_database, get_position_players, get_role_players
 from mcdm.criteria import POSITION_CRITERIA, ROLE_CRITERIA, SLOT_TO_ROLE, FORMATIONS
 from mcdm.engine import rank_players
+from mcdm.optimizer import optimize_squad
 
 # ─────────────────────────────────────────────────────────────
 # Initialize App
@@ -467,6 +468,103 @@ def build_method_explanation(method, weighting):
     ])
 
 
+METHOD_EXPLANATIONS = {
+    "promethee": {
+        "name": "PROMETHEE II",
+        "summary": "Pairwise outranking.",
+        "body": ("Compares every player against every other across all criteria, "
+                 "then sums their 'wins minus losses' into a net outranking flow Φ. "
+                 "Higher Φ means the player beats more rivals more often. "
+                 "The most-used outranking method in football MCDM literature."),
+    },
+    "vikor": {
+        "name": "VIKOR",
+        "summary": "Compromise ranking.",
+        "body": ("Finds the player closest to the ideal across all criteria while "
+                 "keeping their worst-criterion shortfall small. Balances group "
+                 "utility (S = sum of weighted gaps) against individual regret "
+                 "(R = the single largest gap). Scores shown are 1 − Q so higher is better."),
+    },
+    "ahp": {
+        "name": "AHP",
+        "summary": "Weighted priority synthesis.",
+        "body": ("Builds a composite priority for each player from normalized criterion "
+                 "scores and criterion weights. Strong all-round profiles rise to the top."),
+    },
+    "topsis": {
+        "name": "TOPSIS",
+        "summary": "Distance to ideal & anti-ideal.",
+        "body": ("Each player gets a closeness coefficient = distance from the "
+                 "anti-ideal ÷ (distance from ideal + distance from anti-ideal). "
+                 "Range is 0–1; closer to 1 means closer to the best-possible player "
+                 "across the chosen criteria. Most-cited MCDM method in football."),
+    },
+    "saw": {
+        "name": "SAW",
+        "summary": "Simple weighted sum.",
+        "body": ("Normalizes each criterion, multiplies by weights, then sums. "
+                 "Fast, transparent, and useful as a linear baseline."),
+    },
+    "wp": {
+        "name": "WP",
+        "summary": "Multiplicative weighted product.",
+        "body": ("Multiplies normalized criteria raised to their weights. "
+                 "Penalizes players who are weak on any heavily weighted criterion."),
+    },
+    "waspas": {
+        "name": "WASPAS",
+        "summary": "Weighted sum + weighted product hybrid.",
+        "body": ("Combines a weighted sum (WSM, additive) and a weighted product "
+                 "(WPM, multiplicative) at λ = 0.5. The product half penalizes "
+                 "players who are weak on any single criterion, so WASPAS rewards "
+                 "balanced profiles. Görcün (2021) paired CRITIC + WASPAS for goalkeeper selection."),
+    },
+    "codas": {
+        "name": "CODAS",
+        "summary": "Combined distance from the anti-ideal.",
+        "body": ("Each player is scored by Euclidean distance from the worst-case "
+                 "(anti-ideal) plus a Taxicab tie-breaker when two players are nearly "
+                 "tied. Higher score = farther from the worst-case. Keshavarz-Ghorabaee "
+                 "(2016); gaining traction in sports MCDM since 2020."),
+    },
+    "borda_consensus": {
+        "name": "Borda Consensus",
+        "summary": "Rank aggregation consensus.",
+        "body": ("Combines rank positions from multiple MCDM methods into one consensus "
+                 "score by awarding points to each rank and summing across methods."),
+    },
+}
+
+WEIGHTING_EXPLANATIONS = {
+    "critic": ("Weights come from data variability (std dev) × disagreement with "
+               "other criteria (1 − correlation). Criteria that discriminate well "
+               "and aren't redundant get higher weight."),
+    "entropy": ("Weights from Shannon entropy of each criterion's normalized "
+                "distribution. The more spread out a criterion's values are across "
+                "players, the more information it carries — and the higher its weight."),
+}
+
+
+def build_method_explanation(method, weighting):
+    """Plain-English description of the active method + weighting scheme."""
+    info = METHOD_EXPLANATIONS.get(method)
+    if not info:
+        return None
+    weight_label = "Entropy" if weighting == "entropy" else "CRITIC"
+    weight_body = WEIGHTING_EXPLANATIONS.get(weighting, "")
+    return html.Div([
+        html.Div([
+            html.Span(info["name"], className="method-explainer-name"),
+            html.Span(info["summary"], className="method-explainer-summary"),
+        ], className="method-explainer-header"),
+        html.Div(info["body"], className="method-explainer-body"),
+        html.Div([
+            html.Span(f"Weights: {weight_label}", className="method-explainer-weight-label"),
+            html.Span(weight_body, className="method-explainer-weight-body"),
+        ], className="method-explainer-weight"),
+    ])
+
+
 def position_indicator_text(formation, slot):
     """Build indicator text for the currently selected slot."""
     if not slot:
@@ -573,7 +671,7 @@ def build_weights(criteria_config, objective_w, applied_w, active_criteria, weig
 
         items.append(html.Div([
             html.Div([
-                html.Div(info["label"].replace("<br>", " "), className="weight-name", style={"flex": "1"}),
+                html.Div(info["label"], className="weight-name", style={"flex": "1"}),
                 html.Div(f"{aw:.3f}", className="weight-value",
                          id={"type": "weight-display", "index": name}),
             ], className="weight-label"),
@@ -696,6 +794,8 @@ app.layout = html.Div([
     dcc.Store(id="store-budget", data=200),
     dcc.Store(id="store-selected-player", data=None),
     dcc.Store(id="store-position-data", data={}),
+    dcc.Store(id="store-min-budget", data=0),
+    dcc.Store(id="store-optimizer-preview", data=None),
 
     # Download
     dcc.Download(id="squad-download"),
@@ -712,11 +812,34 @@ app.layout = html.Div([
                 dcc.RadioItems(
                     id="weighting-selector",
                     options=[
-                        {"label": " CRITIC",  "value": "critic"},
-                        {"label": " Entropy", "value": "entropy"},
+                        {"label": "PROMETHEE II", "value": "promethee"},
+                        {"label": "VIKOR", "value": "vikor"},
+                        {"label": "AHP", "value": "ahp"},
+                        {"label": "TOPSIS", "value": "topsis"},
+                        {"label": "SAW", "value": "saw"},
+                        {"label": "WP", "value": "wp"},
+                        {"label": "WASPAS", "value": "waspas"},
+                        {"label": "CODAS", "value": "codas"},
+                        {"label": "Borda Consensus", "value": "borda_consensus"},
+                    ],
+                    value="promethee",
+                    clearable=False,
+                    searchable=False,
+                    className="custom-grey-dropdown method-dropdown",
+                ),
+            ], className="header-stat header-stat-method"),
+
+            html.Div([
+                html.Div("Weighting", className="header-stat-label"),
+                dcc.RadioItems(
+                    id="weighting-selector",
+                    options=[
+                        {"label": "CRITIC",  "value": "critic"},
+                        {"label": "Entropy", "value": "entropy"},
                     ],
                     value="critic",
                     inline=True,
+                    className="weighting-segmented",
                 ),
             ], className="header-stat"),
 
@@ -761,8 +884,31 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div("Budget", className="panel-title"),
-                html.Div("€200M", id="budget-value-display",
-                         className="budget-value-display"),
+                html.Div([
+                    html.Div([
+                        html.Span("Min", className="budget-mini-label"),
+                        dcc.Input(
+                            id="min-budget-input",
+                            type="number",
+                            value=0,
+                            min=0, max=2000, step=10,
+                            style={"width": "62px", "textAlign": "center"},
+                            className="budget-mini-input",
+                        ),
+                    ], className="budget-mini-group",
+                       title="Minimum total spend for the optimizer"),
+                    html.Div([
+                        html.Span("€", className="budget-currency"),
+                        dcc.Input(
+                            id="budget-input",
+                            type="number",
+                            value=200,
+                            min=10, max=2000, step=10,
+                            style={"width": "90px", "textAlign": "center"},
+                        ),
+                        html.Span("M", className="budget-currency"),
+                    ], className="budget-input-group"),
+                ], className="budget-input-row"),
             ], className="panel-header"),
 
             html.Div([
@@ -822,6 +968,13 @@ app.layout = html.Div([
                         html.Button("✕ Remove Player", id="remove-player-btn",
                                     className="btn-remove", n_clicks=0,
                                     style={"display": "none"}),
+                        html.Button("Fill Empty", id="fill-empty-btn",
+                                    className="btn-secondary", n_clicks=0,
+                                    title="Run LP on empty slots, keep your picks"),
+                        html.Button("Optimize XI", id="optimize-xi-btn",
+                                    className="btn-secondary btn-secondary-accent",
+                                    n_clicks=0,
+                                    title="Build the best XI from scratch under budget"),
                         html.Button("Clear Squad", id="clear-squad-btn",
                                     className="btn-remove", n_clicks=0),
                         html.Button("Export Squad", id="export-squad-btn",
@@ -859,6 +1012,9 @@ app.layout = html.Div([
         ], className="panel"),
     ], className="main-container"),
 
+    # ── Optimizer Preview Panel (hidden until a run has output) ──
+    html.Div(id="optimizer-preview-wrapper", className="optimizer-preview-wrapper"),
+
     # ── Method Info Panel ──
     html.Div([
         html.Div([
@@ -885,6 +1041,96 @@ app.layout = html.Div([
 
 
 # ─────────────────────────────────────────────────────────────
+# Optimizer helpers
+# ─────────────────────────────────────────────────────────────
+
+def _slot_candidate_frame(slot, formation, method, weighting, exclude_ids):
+    """Build the (id, name, price, score) candidate frame for a single slot.
+
+    Mirrors the role-pool + criteria resolution logic of update_rankings, but
+    returns a plain candidate DataFrame for the optimizer. ``exclude_ids`` are
+    player IDs already locked to other slots and removed from this slot's pool.
+    """
+    formation_def = FORMATIONS.get(formation, {})
+    role_info = SLOT_TO_ROLE.get(slot)
+    if role_info:
+        criteria_config = ROLE_CRITERIA.get(role_info["role"], {})
+        players = get_role_players(PLAYER_DB, role_info["pool"], role_info["broad"])
+    else:
+        broad = formation_def.get(slot, {}).get("pos", "Forward")
+        criteria_config = POSITION_CRITERIA.get(broad, {})
+        players = get_position_players(PLAYER_DB, broad)
+
+    if not criteria_config:
+        return pd.DataFrame(columns=["id", "name", "price", "score"])
+
+    if exclude_ids:
+        players = players[~players["id"].astype(str).isin(exclude_ids)]
+
+    if len(players) < 2:
+        return pd.DataFrame(columns=["id", "name", "price", "score"])
+
+    try:
+        ranked, _, _ = rank_players(
+            players, criteria_config, method=method, weighting=weighting,
+        )
+    except Exception:
+        return pd.DataFrame(columns=["id", "name", "price", "score"])
+
+    team_col = "team_tm" if "team_tm" in ranked.columns else None
+    return pd.DataFrame({
+        "id":    ranked["id"].astype(str).values,
+        "name":  ranked["display_name"].values,
+        "team":  (ranked[team_col].fillna("").astype(str).values
+                  if team_col else [""] * len(ranked)),
+        "price": ranked["market_value_eur_m"].fillna(0).astype(float).values,
+        "score": ranked["score"].astype(float).values,
+    })
+
+
+def _build_optimizer_inputs(formation, method, weighting, assigned, fill_only):
+    """Return ``(slot_candidates, locked)`` for ``optimize_squad``.
+
+    fill_only=True keeps user picks as locked slots and only optimises the
+    empty ones. fill_only=False ignores user picks entirely and optimises
+    every slot from scratch.
+    """
+    formation_def = FORMATIONS.get(formation, {})
+    assigned = assigned or {}
+    locked: dict[str, dict] = {}
+
+    if fill_only:
+        for slot in formation_def:
+            pid = assigned.get(f"{slot}_id")
+            if pid is None:
+                continue
+            team = ""
+            try:
+                row = PLAYER_DB.loc[PLAYER_DB["id"].astype(str) == str(pid)]
+                if len(row) and "team_tm" in row.columns:
+                    team = str(row.iloc[0]["team_tm"] or "")
+            except Exception:
+                pass
+            locked[slot] = {
+                "id":    str(pid),
+                "name":  assigned.get(slot, "?"),
+                "team":  team,
+                "price": float(assigned.get(f"{slot}_value", 0) or 0),
+            }
+
+    exclude_ids = {str(p["id"]) for p in locked.values()}
+
+    slot_candidates: dict[str, pd.DataFrame] = {}
+    for slot in formation_def:
+        if slot in locked:
+            continue
+        slot_candidates[slot] = _slot_candidate_frame(
+            slot, formation, method, weighting, exclude_ids,
+        )
+    return slot_candidates, locked
+
+
+# ─────────────────────────────────────────────────────────────
 # Callbacks
 # ─────────────────────────────────────────────────────────────
 
@@ -902,6 +1148,248 @@ def sync_budget(slider_val):
     else:
         label = f"€{v}M"
     return v, label
+
+
+@app.callback(
+    Output("store-min-budget", "data"),
+    Input("min-budget-input", "value"),
+    prevent_initial_call=True,
+)
+def sync_min_budget(v):
+    try:
+        return max(0, float(v or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+# ── Optimizer: run, render preview, apply ──
+@app.callback(
+    Output("store-optimizer-preview", "data"),
+    [Input("fill-empty-btn", "n_clicks"),
+     Input("optimize-xi-btn", "n_clicks"),
+     Input("formation-dropdown", "value")],
+    [State("store-assigned-players", "data"),
+     State("store-budget", "data"),
+     State("store-min-budget", "data"),
+     State("method-selector", "value"),
+     State("weighting-selector", "value"),
+     State("formation-dropdown", "value")],
+    prevent_initial_call=True,
+)
+def run_optimizer(fill_n, opt_n, _formation_change, assigned, budget_max,
+                  budget_min, method, weighting, formation):
+    ctx = callback_context
+    triggered = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
+
+    # Formation change clears any stale preview so the panel collapses.
+    if "formation-dropdown" in triggered:
+        return None
+    if "fill-empty-btn" not in triggered and "optimize-xi-btn" not in triggered:
+        return None
+    if (fill_n or 0) == 0 and (opt_n or 0) == 0:
+        return None
+
+    fill_only = "fill-empty-btn" in triggered
+    budget_max = float(budget_max or 200)
+    budget_min = float(budget_min or 0)
+    if budget_min > budget_max:
+        budget_min, budget_max = budget_max, budget_min
+
+    slot_cands, locked = _build_optimizer_inputs(
+        formation, method, weighting, assigned, fill_only,
+    )
+    if not slot_cands and not locked:
+        return {"status": "infeasible", "message": "No slots to optimise.",
+                "picks": {}, "total_cost": 0.0, "total_score": 0.0,
+                "mode": "fill" if fill_only else "full"}
+
+    if not slot_cands and locked:
+        # All slots already filled → nothing to do.
+        return {"status": "infeasible",
+                "message": "All slots are already filled. Try 'Optimize XI'.",
+                "picks": {}, "total_cost": 0.0, "total_score": 0.0,
+                "mode": "fill"}
+
+    result = optimize_squad(slot_cands, locked=locked,
+                            budget_min=budget_min, budget_max=budget_max)
+    result["mode"] = "fill" if fill_only else "full"
+    result["budget_min"] = budget_min
+    result["budget_max"] = budget_max
+    return result
+
+
+@app.callback(
+    Output("optimizer-preview-wrapper", "children"),
+    Input("store-optimizer-preview", "data"),
+    State("formation-dropdown", "value"),
+)
+def render_optimizer_preview(preview, formation):
+    if not preview:
+        return None
+
+    mode_label = "Fill Empty" if preview.get("mode") == "fill" else "Optimize XI"
+
+    if preview.get("status") != "optimal":
+        return html.Div([
+            html.Div([
+                html.Div([
+                    html.Div("Optimizer", className="panel-title"),
+                    html.Span(mode_label, className="optimizer-mode-tag"),
+                ], className="panel-header"),
+                html.Div([
+                    html.Div(preview.get("message", "Infeasible."),
+                             className="optimizer-warn-text"),
+                    html.Button("Dismiss", id="discard-preview-btn",
+                                className="btn-secondary", n_clicks=0),
+                ], className="optimizer-infeasible panel-body"),
+            ], className="panel"),
+        ], className="optimizer-preview-inner")
+
+    formation_def = FORMATIONS.get(formation, {})
+    picks = preview.get("picks", {})
+
+    line_order = [("GK",  "Goalkeeper"),
+                  ("DEF", "Defender"),
+                  ("MID", "Midfielder"),
+                  ("FWD", "Forward")]
+    lines = {label: [] for label, _ in line_order}
+    for slot, slot_def in formation_def.items():
+        p = picks.get(slot)
+        if not p:
+            continue
+        broad = slot_def.get("pos", "Forward")
+        for label, match in line_order:
+            if match == broad:
+                lines[label].append((slot, p))
+                break
+
+    def _team_abbr(team_name):
+        if not team_name:
+            return ""
+        words = [w for w in team_name.split() if w and w[0].isalpha()]
+        if len(words) >= 2:
+            return (words[0][0] + words[1][:2]).upper()
+        return team_name[:3].upper()
+
+    rows = []
+    for line_label, _ in line_order:
+        members = lines[line_label]
+        if not members:
+            continue
+        rows.append(html.Tr([
+            html.Td(line_label, colSpan=4, className="opt-line-th"),
+        ], className="opt-line-row"))
+        for slot, p in members:
+            display_slot = re.sub(r"\d+$", "", slot)
+            locked = bool(p.get("locked"))
+            team_abbr = _team_abbr(p.get("team", ""))
+            rows.append(html.Tr([
+                html.Td(display_slot, className="opt-cell-slot"),
+                html.Td([
+                    html.Div(p["name"], className="player-name-cell"),
+                    html.Div(p.get("team", ""), className="team-label"),
+                ]),
+                html.Td(team_abbr, className="opt-cell-teamabbr"),
+                html.Td([
+                    html.Span(f"€{p['price']:.1f}m", className="market-value"),
+                    html.Span("LOCKED", className="opt-row-locktag")
+                        if locked else None,
+                ], className="opt-cell-price"),
+            ], className="opt-tr" + (" opt-tr-locked" if locked else "")))
+
+    cost = preview["total_cost"]
+    budget_max = preview.get("budget_max", 0) or 0
+    budget_min = preview.get("budget_min", 0) or 0
+    pct = min(100, (cost / budget_max * 100) if budget_max > 0 else 0)
+
+    return html.Div([
+        html.Div([
+            html.Div([
+                html.Div("Proposed XI", className="panel-title"),
+                html.Span(mode_label, className="optimizer-mode-tag"),
+            ], className="panel-header"),
+            html.Div([
+                # Single compact stats row
+                html.Div([
+                    html.Div([
+                        html.Span(f"€{cost:.1f}m", className="opt-summary-cost"),
+                        html.Span(f"of €{budget_max:.0f}m",
+                                  className="opt-summary-of"),
+                    ], className="opt-summary-cost-cell"),
+                    html.Div(className="opt-summary-divider"),
+                    html.Div([
+                        html.Span("Σ Score", className="opt-summary-label"),
+                        html.Span(f"{preview['total_score']:.2f}",
+                                  className="opt-summary-value"),
+                    ], className="opt-summary-stat"),
+                    html.Div(className="opt-summary-divider"),
+                    html.Div([
+                        html.Span("Window", className="opt-summary-label"),
+                        html.Span(f"€{budget_min:.0f}m–€{budget_max:.0f}m",
+                                  className="opt-summary-value"),
+                    ], className="opt-summary-stat"),
+                    html.Div([
+                        html.Div(className="opt-summary-bar-fill",
+                                 style={"width": f"{pct:.0f}%"}),
+                    ], className="opt-summary-bar"),
+                ], className="opt-summary-row"),
+
+                html.Table([
+                    html.Thead(html.Tr([
+                        html.Th("Slot"), html.Th("Player"),
+                        html.Th("Team"), html.Th("Value"),
+                    ])),
+                    html.Tbody(rows),
+                ], className="ranking-table opt-table"),
+
+                html.Div([
+                    html.Button("Apply", id="apply-preview-btn",
+                                className="btn-secondary btn-secondary-accent",
+                                n_clicks=0),
+                    html.Button("Discard", id="discard-preview-btn",
+                                className="btn-secondary", n_clicks=0),
+                ], className="opt-actions"),
+            ], className="panel-body"),
+        ], className="panel"),
+    ], className="optimizer-preview-inner")
+
+
+@app.callback(
+    Output("store-assigned-players", "data", allow_duplicate=True),
+    Output("store-optimizer-preview", "data", allow_duplicate=True),
+    Input("apply-preview-btn", "n_clicks"),
+    Input("discard-preview-btn", "n_clicks"),
+    State("store-optimizer-preview", "data"),
+    State("store-assigned-players", "data"),
+    State("formation-dropdown", "value"),
+    prevent_initial_call=True,
+)
+def apply_or_discard_preview(apply_n, discard_n, preview, assigned, formation):
+    ctx = callback_context
+    triggered = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
+
+    if "discard-preview-btn" in triggered:
+        return assigned or {}, None
+
+    if "apply-preview-btn" not in triggered or not apply_n:
+        return dash.no_update, dash.no_update
+    if not preview or preview.get("status") != "optimal":
+        return dash.no_update, dash.no_update
+
+    formation_def = FORMATIONS.get(formation, {})
+    assigned = dict(assigned or {})
+    if preview.get("mode") == "full":
+        # Wipe any existing picks for this formation before applying.
+        for slot in formation_def:
+            for suffix in ("", "_value", "_id"):
+                assigned.pop(f"{slot}{suffix}", None)
+
+    for slot, p in preview.get("picks", {}).items():
+        assigned[slot]            = p["name"]
+        assigned[f"{slot}_value"] = float(p["price"])
+        assigned[f"{slot}_id"]    = str(p["id"])
+
+    return assigned, None
 
 
 # Render pitch
@@ -1005,8 +1493,22 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         criteria_config = POSITION_CRITERIA.get(broad, {})
         players = get_position_players(PLAYER_DB, broad)
 
+    # Resolve slot → specific role + eligible pool. Fall back to broad position
+    # if the slot is somehow unmapped (defensive — every slot should be in SLOT_TO_ROLE).
+    role_info = SLOT_TO_ROLE.get(selected_pos)
+    if role_info:
+        role_key = role_info["role"]
+        pool = role_info["pool"]
+        broad = role_info["broad"]
+        criteria_config = ROLE_CRITERIA.get(role_key, {})
+        players = get_role_players(PLAYER_DB, pool, broad_fallback=broad)
+    else:
+        broad = FORMATIONS.get(formation, {}).get(selected_pos, {}).get("pos", "Forward")
+        criteria_config = POSITION_CRITERIA.get(broad, {})
+        players = get_position_players(PLAYER_DB, broad)
+
     if not criteria_config:
-        return html.Div("No criteria for this position."), html.Div(), {}, {}, btn_text, True
+        return html.Div("No criteria for this position."), html.Div(), {}, {}
 
     # Filter out players assigned to other positions
     current_id_key = f"{selected_pos}_id"
@@ -1068,22 +1570,19 @@ def update_rankings(selected_pos, method, weighting, slider_values,
     except Exception as e:
         return html.Div(f"Error: {e}"), html.Div(), {}, {}, btn_text, True
 
-    # Compute alternate method ranks for stability badge
+    # Alternate-method stability badge comparator.
     alt_map = {
-        "PROMETHEE II": "VIKOR",
-        "VIKOR": "PROMETHEE II",
-        "AHP": "TOPSIS",
-        "TOPSIS": "AHP",
-        "SAW": "WP",
-        "WP": "SAW",
-        "WASPAS": "CODAS",
-        "CODAS": "WASPAS",
-        "BORDA CONSENSUS": "PROMETHEE II",
+        "promethee": "vikor",
+        "vikor": "promethee",
+        "ahp": "topsis",
+        "topsis": "ahp",
+        "saw": "wp",
+        "wp": "saw",
+        "waspas": "promethee",
+        "codas": "promethee",
+        "borda_consensus": "promethee",
     }
-    method_upper = method.upper().strip()
-    if method_upper == "PROMETHEE":
-        method_upper = "PROMETHEE II"
-    alt_method = alt_map.get(method_upper, "PROMETHEE II")
+    alt_method = alt_map.get(method, "promethee")
     try:
         alt_ranked, _, _ = rank_players(players, active_config, method=alt_method,
                                         custom_weights=custom_weights, weighting=weighting)
@@ -1136,6 +1635,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
              for _, row in ranked_df.iterrows()}
 
     weights = build_weights(criteria_config, objective_w, applied_w, active, weighting=weighting)
+    return table, weights, cache, pos_data
 
     is_disabled = True
     if "weight-slider" in triggered_id:
@@ -1160,6 +1660,17 @@ def update_method_explanation(method, weighting, selected_pos):
     return build_method_explanation(method, weighting)
 
 
+
+
+# Method + weighting explanation card
+@app.callback(
+    Output("method-explanation", "children"),
+    [Input("method-selector", "value"),
+     Input("weighting-selector", "value"),
+     Input("store-selected-position", "data")],
+)
+def update_method_explanation(method, weighting, selected_pos):
+    return build_method_explanation(method, weighting)
 
 
 # Render player detail panel
@@ -1238,23 +1749,18 @@ def handle_player_assignment_and_selection(player_clicks, clear_clicks, remove_c
         new_selected_player = None
 
     elif "player-row" in triggered_id and selected_pos and cache:
-        # Ignore phantom initial load triggers where n_clicks is 0 for all rows
+        # Table re-render re-creates player-row components with n_clicks=0,
+        # which Dash treats as an input change. Ignore those phantom triggers.
         if not player_clicks or all((n or 0) == 0 for n in player_clicks):
             pass
         else:
             try:
-                pid = str(json.loads(triggered_id.split(".")[0])["index"])
+                pid = json.loads(triggered_id.split(".")[0])["index"]
                 info = cache.get(pid, {})
                 if info:
                     assigned[selected_pos]            = info.get("name", "?")
                     assigned[f"{selected_pos}_value"] = info.get("value", 0)
                     assigned[f"{selected_pos}_id"]    = pid
-                    
-                    # Direct click toggles details or selects player instantly:
-                    if current_player is not None and str(current_player) == pid:
-                        new_selected_player = None
-                    else:
-                        new_selected_player = pid
             except (json.JSONDecodeError, KeyError):
                 pass
 

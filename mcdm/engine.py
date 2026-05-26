@@ -495,25 +495,45 @@ def codas(matrix, weights, types, tau=0.02):
 
 
 # ─────────────────────────────────────────────────────────────
-SUPPORTED_METHODS = ("PROMETHEE II", "VIKOR", "AHP", "TOPSIS", "SAW", "WP", "WASPAS", "CODAS", "Borda Consensus")
+# Unified ranking function
+# ─────────────────────────────────────────────────────────────
+
+SUPPORTED_METHODS = (
+    "promethee", "vikor", "ahp", "topsis", "saw", "wp", "waspas", "codas", "borda_consensus"
+)
 SUPPORTED_WEIGHTINGS = ("critic", "entropy", "hybrid")
 
+METHOD_ALIASES = {
+    "promethee ii": "promethee",
+    "promethee": "promethee",
+    "vikor": "vikor",
+    "ahp": "ahp",
+    "topsis": "topsis",
+    "saw": "saw",
+    "wp": "wp",
+    "waspas": "waspas",
+    "codas": "codas",
+    "borda consensus": "borda_consensus",
+    "borda_consensus": "borda_consensus",
+}
 
-def rank_players(player_df, criteria_config, method="PROMETHEE II",
-                 custom_weights=None, weighting="critic", alpha=0.5):
+def rank_players(player_df, criteria_config, method="promethee", custom_weights=None,
+                 weighting="critic", alpha=None):
     """
     Rank players using the specified MCDM method.
 
     Parameters:
-        player_df:       pd.DataFrame       - player data
-        criteria_config: dict               - from POSITION_CRITERIA or ROLE_CRITERIA
-        method:          str                - one of SUPPORTED_METHODS
-        custom_weights:  dict or None       - custom weights {criteria_name: weight}
-        weighting:       str                - 'critic' (default), 'entropy', or 'hybrid'
-        alpha:           float              - compromise weight blending factor (0 = Entropy, 1 = CRITIC)
-    
+        player_df:       pd.DataFrame  - player data
+        criteria_config: dict          - from POSITION_CRITERIA or ROLE_CRITERIA
+        method:          str           - one of SUPPORTED_METHODS (aliases accepted)
+        custom_weights:  dict or None  - user slider overrides {criteria_name: weight}
+        weighting:       str           - 'critic', 'entropy', or 'hybrid'
+        alpha:           float | None  - hybrid blending (0=entropy, 1=critic), for backward compatibility
+
     Returns:
-        (result, objective_weights_dict, applied_weights_dict)
+        (ranked_df, objective_weights_dict, applied_weights_dict)
+        The objective_weights_dict reflects whichever scheme is active (CRITIC or
+        Entropy) so the UI can show "Objective: <name>" against the slider.
     """
     if len(player_df) < 2:
         player_df = player_df.copy()
@@ -528,57 +548,81 @@ def rank_players(player_df, criteria_config, method="PROMETHEE II",
     matrix = player_df[columns].values.astype(float)
     matrix = np.nan_to_num(matrix, nan=0.0, posinf=0.0, neginf=0.0)
 
-    # Determine objective baseline weights.
+    method_key = METHOD_ALIASES.get(str(method).strip().lower(), str(method).strip().lower())
+    if method_key not in SUPPORTED_METHODS:
+        raise ValueError(f"Unknown method: {method}")
+
+    if alpha is not None:
+        weighting = "hybrid"
+    weighting_key = str(weighting).strip().lower()
+    if weighting_key not in SUPPORTED_WEIGHTINGS:
+        weighting_key = "critic"
+
     critic_w = critic_weights(matrix, types)
-    shannon_w = entropy_weights(matrix, types)
-    
-    if weighting == "entropy":
-        hybrid_w = shannon_w
-    elif weighting == "critic":
-        hybrid_w = critic_w
+    entropy_w = entropy_weights(matrix, types)
+    if weighting_key == "entropy":
+        objective_w = entropy_w
+    elif weighting_key == "hybrid":
+        blend_alpha = 0.5 if alpha is None else alpha
+        objective_w = hybridize_weights(critic_w, entropy_w, alpha=blend_alpha)
     else:
-        # hybrid or custom alpha
-        hybrid_w = hybridize_weights(critic_w, shannon_w, alpha=alpha)
+        objective_w = critic_w
 
-    # Slider overrides, then renormalize.
     if custom_weights:
-        weights = np.array([custom_weights.get(c, hybrid_w[i])
-                            for i, c in enumerate(criteria_names)])
+        weights = np.array([custom_weights.get(c, objective_w[i]) for i, c in enumerate(criteria_names)])
         w_sum = weights.sum()
-        weights = weights / w_sum if w_sum > 0 else hybrid_w
+        weights = weights / w_sum if w_sum > 0 else objective_w
     else:
-        weights = hybrid_w
+        weights = objective_w
 
-    # Apply MCDM method
     result = player_df.copy()
-    
-    matrix_df = pd.DataFrame(matrix, index=player_df.index, columns=columns)
-    scores_data = calculate_mcdm(method, matrix_df, weights, types)
-    
-    # Map the output scores to result columns based on method
-    method_normalized = method.upper().replace("_", " ").replace("-", " ")
-    
-    if method_normalized in ("PROMETHEE", "PROMETHEE II", "VIKOR", "TOPSIS", "WASPAS", "CODAS"):
-        if "VIKOR" in method_normalized:
-            Q, S, R, ranks = scores_data
-            result["score"] = 1 - Q  # Invert so higher = better
-            result["q_value"] = Q
-            result["rank"] = ranks
-        else:
-            scores, ranks = scores_data
-            result["score"] = scores
-            result["rank"] = ranks
-    else:
-        # AHP, SAW, WP, Borda Consensus return pd.Series
-        result["score"] = scores_data.values
-        ranks = np.empty(len(scores_data), dtype=int)
-        ranks[np.argsort(-scores_data.values)] = np.arange(1, len(scores_data) + 1)
-        result["rank"] = ranks
 
-    # Add Hybrid weights info
-    result.attrs["critic_weights"] = dict(zip(criteria_names, hybrid_w))
+    if method_key == "promethee":
+        scores, ranks = promethee_ii(matrix, weights, types)
+        result["score"] = scores
+    elif method_key == "vikor":
+        Q, _, _, ranks = vikor(matrix, weights, types)
+        result["score"] = 1 - Q
+        result["q_value"] = Q
+    elif method_key == "topsis":
+        scores, ranks = topsis(matrix, weights, types)
+        result["score"] = scores
+    elif method_key == "waspas":
+        scores, ranks = waspas(matrix, weights, types)
+        result["score"] = scores
+    elif method_key == "codas":
+        scores, ranks = codas(matrix, weights, types)
+        result["score"] = scores
+    elif method_key == "ahp":
+        scores = _ahp(pd.DataFrame(matrix, index=player_df.index, columns=columns), weights, types)
+        result["score"] = scores.values
+        ranks = np.empty(len(scores), dtype=int)
+        ranks[np.argsort(-scores.values)] = np.arange(1, len(scores) + 1)
+    elif method_key == "saw":
+        scores = _saw(pd.DataFrame(matrix, index=player_df.index, columns=columns), weights, types)
+        result["score"] = scores.values
+        ranks = np.empty(len(scores), dtype=int)
+        ranks[np.argsort(-scores.values)] = np.arange(1, len(scores) + 1)
+    elif method_key == "wp":
+        scores = _wp(pd.DataFrame(matrix, index=player_df.index, columns=columns), weights, types)
+        result["score"] = scores.values
+        ranks = np.empty(len(scores), dtype=int)
+        ranks[np.argsort(-scores.values)] = np.arange(1, len(scores) + 1)
+    elif method_key == "borda_consensus":
+        matrix_df = pd.DataFrame(matrix, index=player_df.index, columns=columns)
+        scores = calculate_mcdm("Borda Consensus", matrix_df, weights, types)
+        result["score"] = scores.values
+        ranks = np.empty(len(scores), dtype=int)
+        ranks[np.argsort(-scores.values)] = np.arange(1, len(scores) + 1)
+    else:
+        raise ValueError(f"Unknown method: {method}")
+
+    result["rank"] = ranks
+    result.attrs["objective_weights"] = dict(zip(criteria_names, objective_w))
     result.attrs["applied_weights"] = dict(zip(criteria_names, weights))
-    result.attrs["weighting"] = weighting
+    result.attrs["weighting"] = weighting_key
     result = result.sort_values("rank")
-    
-    return result, dict(zip(criteria_names, hybrid_w)), dict(zip(criteria_names, weights))
+
+    return (result,
+            dict(zip(criteria_names, objective_w)),
+            dict(zip(criteria_names, weights)))
