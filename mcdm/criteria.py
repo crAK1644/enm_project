@@ -8,7 +8,7 @@ Maps football criteria to CSV column names and specifies benefit/cost types.
 # Broad-position criteria (used as fallback when a player's specific role is unknown).
 POSITION_CRITERIA = {
     "Forward": {
-        "xG": {"column": "expected_goals_per90", "type": 1, "label": "Expected Goals (xG)"},
+        "xG": {"column": "expected_goals_per90", "type": 1, "label": "Expected Goals<br>(xG)"},
         "Goals": {"column": "goals_scored_per90", "type": 1, "label": "Goals"},
         "Goals/xG": {"column": "goals_per_xg", "type": 1, "label": "Goals / xG (Finishing)"},
         "Assists": {"column": "assists_per90", "type": 1, "label": "Assists"},
@@ -18,7 +18,7 @@ POSITION_CRITERIA = {
         "Aerial Ability": {"column": "clearances_blocks_interceptions_per90", "type": 1, "label": "Aerial Ability"},
     },
     "Midfielder": {
-        "xA": {"column": "expected_assists_per90", "type": 1, "label": "Expected Assists (xA)"},
+        "xA": {"column": "expected_assists_per90", "type": 1, "label": "Expected Assists<br>(xA)"},
         "Goals": {"column": "goals_scored_per90", "type": 1, "label": "Goals"},
         "Assists": {"column": "assists_per90", "type": 1, "label": "Assists"},
         "Shooting Threat": {"column": "threat_per90", "type": 1, "label": "Shooting Threat"},

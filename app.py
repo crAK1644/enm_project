@@ -40,6 +40,205 @@ app = dash.Dash(
     ],
 )
 
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <style>
+            /* Force method dropdown to render block to fix layout */
+            html body .header-stat > div#method-selector,
+            html body .header-stat > div[id$="-selector"] {
+                display: block !important;
+            }
+            
+            /* Specific dark theme styles for the dropdown control and option items */
+            html body .dash-dropdown,
+            html body .dash-dropdown *,
+            html body .Select,
+            html body .Select-control,
+            html body .Select-menu,
+            html body .Select-menu-outer,
+            html body .Select-option,
+            html body .VirtualizedSelectOption,
+            html body [class*="Select"],
+            html body [class*="menu"],
+            html body [class*="option"],
+            html body [class*="Option"],
+            html body [class*="Menu"] {
+                background-color: #2a2a2f !important;
+                background: #2a2a2f !important;
+                color: #ececf0 !important;
+                border-color: rgba(255, 255, 255, 0.12) !important;
+                -webkit-text-fill-color: #ececf0 !important;
+            }
+            
+            html body .Select-option.is-focused,
+            html body .VirtualizedSelectFocusedOption,
+            html body [class*="option"]:hover,
+            html body [class*="option"]:focus,
+            html body [class*="Focused"] {
+                background-color: #38383f !important;
+                background: #38383f !important;
+                color: #ececf0 !important;
+            }
+            
+            html body .Select-value-label,
+            html body [class*="value-label"],
+            html body [class*="singleValue"] {
+                color: #ececf0 !important;
+            }
+            
+            html body .Select-arrow,
+            html body [class*="indicatorSeparator"],
+            html body [class*="dropdownIndicator"] {
+                border-top-color: #a0a0aa !important;
+                color: #a0a0aa !important;
+            }
+            
+            /* Slider mark labels dark theme fixes */
+            html body .rc-slider-mark-text,
+            html body .rc-slider-mark-text-active,
+            html body .rc-slider-mark span,
+            html body .rc-slider-mark div,
+            html body .rc-slider span,
+            html body .rc-slider div,
+            html body .rc-slider-mark-text * {
+                color: #a0a0aa !important;
+                -webkit-text-fill-color: #a0a0aa !important;
+                font-weight: 600 !important;
+                font-size: 11px !important;
+                font-family: 'JetBrains Mono', monospace !important;
+                opacity: 1 !important;
+            }
+            
+            /* Slider rail */
+            html body .rc-slider input,
+            html body [class*="rc-slider"] input,
+            .rc-slider input {
+                display: none !important;
+            }
+            
+            /* Slider rail */
+            html body .rc-slider-rail,
+            html body [class*="rc-slider-rail"] {
+                background-color: rgba(255, 255, 255, 0.08) !important;
+                background: rgba(255, 255, 255, 0.08) !important;
+                height: 4px !important;
+            }
+            
+            /* Slider dots */
+            html body .rc-slider-dot,
+            html body [class*="rc-slider-dot"] {
+                border-color: rgba(255, 255, 255, 0.15) !important;
+                background-color: #2a2a2f !important;
+            }
+            
+            /* Numeric Input box and general inputs dark theme styling */
+            html body input:not([type="checkbox"]):not([type="radio"]),
+            html body select,
+            html body textarea {
+                background-color: #2a2a2f !important;
+                background: #2a2a2f !important;
+                color: #ececf0 !important;
+                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                border-radius: 8px !important;
+                outline: none !important;
+                box-shadow: none !important;
+                -webkit-text-fill-color: #ececf0 !important;
+            }
+            
+            html body #budget-input:focus,
+            html body input:focus {
+                border: 1px solid #d4845a !important; /* Force entire border property on focus! */
+                outline: none !important;
+                box-shadow: 0 0 0 2px rgba(212, 132, 90, 0.25) !important;
+            }
+            
+            /* Budget display boxes and percent fixes */
+            html body .budget-percent-text {
+                color: #a0a0aa !important;
+            }
+            
+            html body .pitch-container {
+                overflow: visible !important;
+            }
+            
+            /* Slider tooltip (rc-slider) dark theme overrides */
+            html body .rc-slider-tooltip-inner,
+            html body [class*="rc-slider-tooltip-inner"],
+            html body .rc-slider-tooltip,
+            html body [class*="rc-slider-tooltip"],
+            html body .rc-slider-tooltip *,
+            html body [class*="tooltip"] {
+                background-color: #2a2a2f !important;
+                background: #2a2a2f !important;
+                color: #ececf0 !important;
+                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                font-family: 'JetBrains Mono', monospace !important;
+                font-size: 11px !important;
+                opacity: 1 !important;
+                -webkit-text-fill-color: #ececf0 !important;
+            }
+            
+            html body .rc-slider-tooltip-arrow,
+            html body [class*="rc-slider-tooltip-arrow"] {
+                border-top-color: #2a2a2f !important;
+                border-bottom-color: #2a2a2f !important;
+            }
+            
+            /* Slider track and handle overrides to match our design system (accent orange/peach) */
+            html body .rc-slider-track,
+            html body [class*="rc-slider-track"] {
+                background-color: #d4845a !important;
+                background: #d4845a !important;
+                height: 4px !important;
+            }
+            
+            html body .rc-slider-handle,
+            html body [class*="rc-slider-handle"] {
+                border-color: #d4845a !important;
+                background-color: #222226 !important;
+                background: #222226 !important;
+                width: 16px !important;
+                height: 16px !important;
+                margin-top: -6px !important;
+            }
+            
+            /* Hide Dash dev-tools bar (Plotly Cloud / Errors / Callbacks / Server) */
+            ._dash-debug-menu,
+            ._dash-debug-menu *,
+            .dash-debug-menu,
+            .dash-debug-menu__outer,
+            .dash-debug-menu__content,
+            [class*="dash-debug"],
+            [class*="_dash-debug"] {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                height: 0 !important;
+                width: 0 !important;
+                overflow: hidden !important;
+                position: absolute !important;
+                z-index: -9999 !important;
+            }
+        </style>
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
+
 # Load player database
 print("Loading player database...")
 PLAYER_DB = build_player_database(PROJECT_DIR, min_minutes=450)
@@ -156,11 +355,117 @@ def build_pitch(formation_key, assigned_players, selected_position):
             className=" ".join(classes),
             style={"left": f"{info['x']}%", "top": f"{info['y']}%"},
             id={"type": "position-node", "index": slot},
+            key=f"{formation_key}-{slot}",
             n_clicks=0,
         )
         children.append(node)
 
-    return html.Div(children, className="pitch-container")
+    return html.Div(children, className="pitch-container", key=formation_key)
+
+
+METHOD_EXPLANATIONS = {
+    "PROMETHEE II": {
+        "name": "PROMETHEE II",
+        "summary": "Pairwise outranking.",
+        "body": ("Compares every player against every other across all criteria, "
+                 "then sums their 'wins minus losses' into a net outranking flow Φ. "
+                 "Higher Φ means the player beats more rivals more often. "
+                 "The most-used outranking method in football MCDM literature."),
+    },
+    "VIKOR": {
+        "name": "VIKOR",
+        "summary": "Compromise ranking.",
+        "body": ("Finds the player closest to the ideal across all criteria while "
+                 "keeping their worst-criterion shortfall small. Balances group "
+                 "utility (S = sum of weighted gaps) against individual regret "
+                 "(R = the single largest gap). Scores shown are 1 − Q so higher is better."),
+    },
+    "AHP": {
+        "name": "AHP",
+        "summary": "Analytic Hierarchy Process.",
+        "body": ("Structures the decision into a hierarchy of criteria and alternatives, "
+                 "then derives priority weights from pairwise comparison matrices. "
+                 "The final score is a weighted sum of normalised criterion values. "
+                 "Widely used in management science since Saaty (1980)."),
+    },
+    "TOPSIS": {
+        "name": "TOPSIS",
+        "summary": "Distance to ideal & anti-ideal.",
+        "body": ("Each player gets a closeness coefficient = distance from the "
+                 "anti-ideal ÷ (distance from ideal + distance from anti-ideal). "
+                 "Range is 0–1; closer to 1 means closer to the best-possible player "
+                 "across the chosen criteria. Most-cited MCDM method in football."),
+    },
+    "SAW": {
+        "name": "SAW",
+        "summary": "Simple Additive Weighting.",
+        "body": ("Normalises each criterion to 0–1, multiplies by its weight, and "
+                 "sums them up. The most intuitive MCDM method — a player's final "
+                 "score is simply the weighted average of their normalised stats. "
+                 "Fast and transparent, often used as a baseline."),
+    },
+    "WP": {
+        "name": "WP",
+        "summary": "Weighted Product Model.",
+        "body": ("Each criterion value is raised to the power of its weight, then "
+                 "all are multiplied together. Unlike SAW's additive approach, WP "
+                 "is multiplicative — a zero on any criterion collapses the score. "
+                 "Rewards well-rounded players and penalises extreme weaknesses."),
+    },
+    "WASPAS": {
+        "name": "WASPAS",
+        "summary": "Weighted sum + weighted product hybrid.",
+        "body": ("Combines a weighted sum (WSM, additive) and a weighted product "
+                 "(WPM, multiplicative) at λ = 0.5. The product half penalizes "
+                 "players who are weak on any single criterion, so WASPAS rewards "
+                 "balanced profiles. Görcün (2021) paired CRITIC + WASPAS for goalkeeper selection."),
+    },
+    "CODAS": {
+        "name": "CODAS",
+        "summary": "Combined distance from the anti-ideal.",
+        "body": ("Each player is scored by Euclidean distance from the worst-case "
+                 "(anti-ideal) plus a Taxicab tie-breaker when two players are nearly "
+                 "tied. Higher score = farther from the worst-case. Keshavarz-Ghorabaee "
+                 "(2016); gaining traction in sports MCDM since 2020."),
+    },
+    "Borda Consensus": {
+        "name": "Borda Consensus",
+        "summary": "Multi-method rank aggregation.",
+        "body": ("Runs AHP, TOPSIS, and SAW independently, assigns Borda points "
+                 "based on each method's ranking, then sums them into a consensus "
+                 "score. Players consistently ranked high across all three methods "
+                 "rise to the top — reducing single-method bias."),
+    },
+}
+
+WEIGHTING_EXPLANATIONS = {
+    "critic": ("Weights come from data variability (std dev) × disagreement with "
+               "other criteria (1 − correlation). Criteria that discriminate well "
+               "and aren't redundant get higher weight."),
+    "entropy": ("Weights from Shannon entropy of each criterion's normalized "
+                "distribution. The more spread out a criterion's values are across "
+                "players, the more information it carries — and the higher its weight."),
+}
+
+
+def build_method_explanation(method, weighting):
+    """Plain-English description of the active method + weighting scheme."""
+    info = METHOD_EXPLANATIONS.get(method)
+    if not info:
+        return None
+    weight_label = "Entropy" if weighting == "entropy" else "CRITIC"
+    weight_body = WEIGHTING_EXPLANATIONS.get(weighting, "")
+    return html.Div([
+        html.Div([
+            html.Span(info["name"], className="method-explainer-name"),
+            html.Span(info["summary"], className="method-explainer-summary"),
+        ], className="method-explainer-header"),
+        html.Div(info["body"], className="method-explainer-body"),
+        html.Div([
+            html.Span(f"Weights: {weight_label}", className="method-explainer-weight-label"),
+            html.Span(weight_body, className="method-explainer-weight-body"),
+        ], className="method-explainer-weight"),
+    ])
 
 
 METHOD_EXPLANATIONS = {
@@ -271,7 +576,7 @@ def position_indicator_text(formation, slot):
     return f"{slot} · {pos}" if pos else slot
 
 
-def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remaining=9999):
+def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remaining=9999, selected_player=None):
     """Build ranking table with team, stability badge, search and budget filter."""
     if ranked_df is None or len(ranked_df) == 0:
         return html.Div([
@@ -321,6 +626,9 @@ def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remai
         # Team name
         team = str(row.get("team_tm", "")).strip()
 
+        is_selected = (selected_player is not None and str(selected_player) == pid)
+        tr_class = "player-tr selected-tr" if is_selected else "player-tr"
+
         rows.append(
             html.Tr([
                 html.Td(html.Span(str(r), className=f"rank-badge {rank_class(r)}")),
@@ -332,16 +640,16 @@ def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remai
                 html.Td(html.Div([
                     html.Div(className="score-bar-fill", style={"width": f"{max(5, norm):.0f}%"})
                 ], className="score-bar")),
-                html.Td([
+                html.Td(html.Div([
                     html.Span(f"{row['score']:.3f}",
                               style={"fontSize": "12px", "color": "#a0a0aa",
                                      "fontFamily": "'JetBrains Mono', monospace"}),
                     stability_el,
-                ], className="score-cell"),
+                ], className="score-cell-container"), className="score-cell"),
             ],
             id={"type": "player-row", "index": pid},
             n_clicks=0,
-            className="player-tr",
+            className=tr_class,
             )
         )
 
@@ -427,10 +735,13 @@ def build_player_detail(player_id, position_data):
     fig.update_layout(
         polar=dict(
             bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, 1], showticklabels=False,
-                            gridcolor="rgba(255,255,255,0.08)"),
+            radialaxis=dict(visible=True, range=[0, 1.02], showticklabels=False,
+                            gridcolor="rgba(255,255,255,0.08)",
+                            tickvals=[0.2, 0.4, 0.6, 0.8, 1.0],
+                            showline=False, linecolor="rgba(0,0,0,0)"),
             angularaxis=dict(gridcolor="rgba(255,255,255,0.08)",
                              linecolor="rgba(255,255,255,0.08)",
+                             showline=False,
                              tickfont=dict(color="#a0a0aa", size=10)),
         ),
         paper_bgcolor="rgba(0,0,0,0)",
@@ -438,8 +749,8 @@ def build_player_detail(player_id, position_data):
         showlegend=True,
         legend=dict(font=dict(color="#a0a0aa", size=10), bgcolor="rgba(0,0,0,0)",
                     orientation="h", y=-0.12),
-        margin=dict(l=30, r=30, t=10, b=30),
-        height=260,
+        margin=dict(l=85, r=85, t=40, b=40),
+        height=290,
     )
 
     # Criteria breakdown bars
@@ -449,7 +760,7 @@ def build_player_detail(player_id, position_data):
         av = avg_scores.get(k, 0)
         lbl = labels[k]
         bar_items.append(html.Div([
-            html.Div(lbl, className="breakdown-label"),
+            html.Div(lbl.replace("<br>", " "), className="breakdown-label"),
             html.Div([
                 html.Div(style={"width": f"{pv*100:.0f}%"}, className="breakdown-bar-fill"),
                 html.Div(style={"left": f"{av*100:.0f}%"},  className="breakdown-bar-avg"),
@@ -497,9 +808,9 @@ app.layout = html.Div([
 
         html.Div([
             html.Div([
-                html.Div("Method", className="header-stat-label"),
-                dcc.Dropdown(
-                    id="method-selector",
+                html.Div("Weighting", className="header-stat-label"),
+                dcc.RadioItems(
+                    id="weighting-selector",
                     options=[
                         {"label": "PROMETHEE II", "value": "promethee"},
                         {"label": "VIKOR", "value": "vikor"},
@@ -547,6 +858,27 @@ app.layout = html.Div([
         ], className="header-controls"),
     ], className="header-bar"),
 
+    # ── Method Selector (pill row) ──
+    html.Div([
+        dcc.RadioItems(
+            id="method-selector",
+            options=[
+                {"label": "PROMETHEE II", "value": "PROMETHEE II"},
+                {"label": "VIKOR", "value": "VIKOR"},
+                {"label": "AHP", "value": "AHP"},
+                {"label": "TOPSIS", "value": "TOPSIS"},
+                {"label": "SAW", "value": "SAW"},
+                {"label": "WP", "value": "WP"},
+                {"label": "WASPAS", "value": "WASPAS"},
+                {"label": "CODAS", "value": "CODAS"},
+                {"label": "Borda Consensus", "value": "Borda Consensus"},
+            ],
+            value="PROMETHEE II",
+            inline=True,
+            className="method-pill-row",
+        ),
+    ], className="method-row-wrapper"),
+
     # ── Budget Bar ──
     html.Div([
         html.Div([
@@ -583,9 +915,15 @@ app.layout = html.Div([
                 dcc.Slider(
                     id="budget-slider",
                     min=10, max=2000, step=10, value=200,
-                    marks={50: "€50m", 200: "€200m", 500: "€500m",
-                           1000: "€1bn", 2000: "€2bn"},
+                    marks={
+                        50: {"label": "50m", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                        200: {"label": "200m", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                        500: {"label": "500m", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                        1000: {"label": "1bn", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                        2000: {"label": "2bn", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                    },
                     tooltip={"placement": "bottom", "always_visible": False},
+                    updatemode="drag",
                 ),
             ], className="budget-slider-section"),
 
@@ -654,7 +992,7 @@ app.layout = html.Div([
                     dcc.Input(
                         id="search-input",
                         type="text",
-                        placeholder="Search player…",
+                        placeholder="Search player",
                         debounce=True,
                         className="search-input",
                     ),
@@ -693,7 +1031,8 @@ app.layout = html.Div([
             html.Div([
                 html.Div("Criteria Weights", className="panel-title"),
                 html.Button("Reset to CRITIC", id="reset-weights-btn",
-                            className="btn-secondary", n_clicks=0),
+                            className="btn-secondary", n_clicks=0,
+                            disabled=True),
             ], className="panel-header"),
             html.Div(id="weights-container", className="panel-body"),
         ], className="panel weight-panel"),
@@ -795,23 +1134,20 @@ def _build_optimizer_inputs(formation, method, weighting, assigned, fill_only):
 # Callbacks
 # ─────────────────────────────────────────────────────────────
 
-# Budget sync
+# Budget sync — slider only
 @app.callback(
     [Output("store-budget", "data"),
-     Output("budget-input", "value"),
-     Output("budget-slider", "value")],
-    [Input("budget-input", "value"),
-     Input("budget-slider", "value")],
-    [State("store-budget", "data")],
+     Output("budget-value-display", "children")],
+    Input("budget-slider", "value"),
     prevent_initial_call=True,
 )
-def sync_budget(input_val, slider_val, current):
-    ctx = callback_context
-    if not ctx.triggered:
-        return current, current, current
-    trigger = ctx.triggered[0]["prop_id"]
-    v = (input_val or 200) if "budget-input" in trigger else (slider_val or 200)
-    return v, v, v
+def sync_budget(slider_val):
+    v = slider_val or 200
+    if v >= 1000:
+        label = f"€{v / 1000:.1f}bn"
+    else:
+        label = f"€{v}M"
+    return v, label
 
 
 @app.callback(
@@ -1103,7 +1439,9 @@ def select_position(n_clicks, formation, current):
     [Output("ranking-container", "children"),
      Output("weights-container", "children"),
      Output("store-rankings-cache", "data"),
-     Output("store-position-data", "data")],
+     Output("store-position-data", "data"),
+     Output("reset-weights-btn", "children"),
+     Output("reset-weights-btn", "disabled")],
     [Input("store-selected-position", "data"),
      Input("method-selector", "value"),
      Input("weighting-selector", "value"),
@@ -1111,13 +1449,14 @@ def select_position(n_clicks, formation, current):
      Input("reset-weights-btn", "n_clicks"),
      Input("store-assigned-players", "data"),
      Input("search-input", "value"),
-     Input("budget-filter", "value")],
+     Input("budget-filter", "value"),
+     Input("store-selected-player", "data")],
     [State("formation-dropdown", "value"),
      State("store-budget", "data")],
 )
 def update_rankings(selected_pos, method, weighting, slider_values,
                     reset_clicks, assigned, search, budget_filter_val,
-                    formation, budget_store):
+                    selected_player, formation, budget_store):
     ctx = callback_context
     triggered_id = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
     assigned = assigned or {}
@@ -1134,8 +1473,25 @@ def update_rankings(selected_pos, method, weighting, slider_values,
                  className="empty-state-text"),
     ], className="empty-state")
 
+    label = "Entropy" if weighting == "entropy" else "CRITIC"
+    btn_text = f"Reset to {label}"
+
     if not selected_pos:
-        return empty_rank, empty_weight, {}, {}
+        return empty_rank, empty_weight, {}, {}, btn_text, True
+
+    # Resolve slot → specific role + eligible pool. Fall back to broad position
+    # if the slot is somehow unmapped (defensive — every slot should be in SLOT_TO_ROLE).
+    role_info = SLOT_TO_ROLE.get(selected_pos)
+    if role_info:
+        role_key = role_info["role"]
+        pool = role_info["pool"]
+        broad = role_info["broad"]
+        criteria_config = ROLE_CRITERIA.get(role_key, {})
+        players = get_role_players(PLAYER_DB, pool, broad_fallback=broad)
+    else:
+        broad = FORMATIONS.get(formation, {}).get(selected_pos, {}).get("pos", "Forward")
+        criteria_config = POSITION_CRITERIA.get(broad, {})
+        players = get_position_players(PLAYER_DB, broad)
 
     # Resolve slot → specific role + eligible pool. Fall back to broad position
     # if the slot is somehow unmapped (defensive — every slot should be in SLOT_TO_ROLE).
@@ -1162,7 +1518,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         players = players[~players["id"].astype(str).isin(assigned_ids)]
 
     if len(players) < 2:
-        return html.Div("Not enough players."), html.Div(), {}, {}
+        return html.Div("Not enough players."), html.Div(), {}, {}, btn_text, True
 
     criteria_order = list(criteria_config.keys())
     active = criteria_order.copy()
@@ -1212,7 +1568,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
             custom_weights=custom_weights, weighting=weighting,
         )
     except Exception as e:
-        return html.Div(f"Error: {e}"), html.Div(), {}, {}
+        return html.Div(f"Error: {e}"), html.Div(), {}, {}, btn_text, True
 
     # Alternate-method stability badge comparator.
     alt_map = {
@@ -1246,6 +1602,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         search=search or "",
         budget_filter=do_budget_filter,
         remaining=remaining,
+        selected_player=selected_player,
     )
 
     # Build position-data store for radar/breakdown
@@ -1280,38 +1637,29 @@ def update_rankings(selected_pos, method, weighting, slider_values,
     weights = build_weights(criteria_config, objective_w, applied_w, active, weighting=weighting)
     return table, weights, cache, pos_data
 
+    is_disabled = True
+    if "weight-slider" in triggered_id:
+        is_disabled = False
+    elif use_custom and custom_weights is not None:
+        is_disabled = False
 
-# Select player for detail panel (click again to toggle off)
+    return table, weights, cache, pos_data, btn_text, is_disabled
+
+
+# (select_player callback merged into handle_player_assignment_and_selection to avoid race conditions)
+
+
+# Method + weighting explanation card
 @app.callback(
-    Output("store-selected-player", "data"),
-    [Input({"type": "player-row", "index": ALL}, "n_clicks"),
+    Output("method-explanation", "children"),
+    [Input("method-selector", "value"),
+     Input("weighting-selector", "value"),
      Input("store-selected-position", "data")],
-    [State("store-selected-player", "data")],
-    prevent_initial_call=True,
 )
-def select_player(row_clicks, selected_pos, current_player):
-    ctx = callback_context
-    if not ctx.triggered:
-        return None
-    triggered_id = ctx.triggered[0]["prop_id"]
+def update_method_explanation(method, weighting, selected_pos):
+    return build_method_explanation(method, weighting)
 
-    # Position changed → clear detail panel
-    if "store-selected-position" in triggered_id:
-        return None
 
-    if "player-row" not in triggered_id:
-        return current_player
-
-    # Table refresh can reset row n_clicks to zero; keep the selection open.
-    if not row_clicks or all((n or 0) == 0 for n in row_clicks):
-        return current_player
-
-    try:
-        pid = json.loads(triggered_id.split(".")[0])["index"]
-    except (json.JSONDecodeError, KeyError):
-        return None
-
-    return pid
 
 
 # Method + weighting explanation card
@@ -1352,9 +1700,10 @@ def update_remove_btn(selected_pos, assigned):
     return {"display": "none"}, "✕ Remove"
 
 
-# Assign / remove / clear players + update budget display
+# Assign / remove / clear players + update budget display + select player details (combined to prevent race conditions)
 @app.callback(
     [Output("store-assigned-players", "data"),
+     Output("store-selected-player", "data"),
      Output("spent-display", "children"),
      Output("remaining-display", "children"),
      Output("remaining-display", "className"),
@@ -1367,27 +1716,37 @@ def update_remove_btn(selected_pos, assigned):
      Input("clear-squad-btn", "n_clicks"),
      Input("remove-player-btn", "n_clicks"),
      Input("store-budget", "data"),
-     Input("formation-dropdown", "value")],
+     Input("formation-dropdown", "value"),
+     Input("store-selected-position", "data")],
     [State("store-assigned-players", "data"),
-     State("store-selected-position", "data"),
+     State("store-selected-player", "data"),
      State("store-rankings-cache", "data")],
 )
-def assign_player(player_clicks, clear_clicks, remove_clicks, budget, formation,
-                  assigned, selected_pos, cache):
+def handle_player_assignment_and_selection(player_clicks, clear_clicks, remove_clicks, budget, formation, selected_pos,
+                                          assigned, current_player, cache):
     ctx = callback_context
     assigned = assigned or {}
     budget = budget or 200
     triggered_id = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
 
+    new_selected_player = current_player
+
     if "formation-dropdown" in triggered_id:
         assigned = {}
+        new_selected_player = None
 
     elif "clear-squad-btn" in triggered_id:
         assigned = {}
+        new_selected_player = None
+
+    elif "store-selected-position" in triggered_id:
+        # Clear selected player details when moving to another position node
+        new_selected_player = None
 
     elif "remove-player-btn" in triggered_id and selected_pos:
         assigned = {k: v for k, v in assigned.items()
                     if not k.startswith(selected_pos)}
+        new_selected_player = None
 
     elif "player-row" in triggered_id and selected_pos and cache:
         # Table re-render re-creates player-row components with n_clicks=0,
@@ -1424,6 +1783,7 @@ def assign_player(player_clicks, clear_clicks, remove_clicks, budget, formation,
 
     return (
         assigned,
+        new_selected_player,
         f"€{cost:.1f}m",
         f"€{remaining:.1f}m",
         cls,
@@ -1433,6 +1793,7 @@ def assign_player(player_clicks, clear_clicks, remove_clicks, budget, formation,
         bar_cls,
         f"{pct:.0f}%",
     )
+
 
 
 # Export squad to CSV
@@ -1468,4 +1829,4 @@ if __name__ == "__main__":
     print("  ⚽ Transfer Window Manager")
     print("=" * 50)
     print("\n  → http://localhost:8050\n")
-    app.run(debug=True, host="0.0.0.0", port=8050)
+    app.run(debug=False, host="0.0.0.0", port=8050)

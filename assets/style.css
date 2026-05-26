@@ -150,13 +150,60 @@ body {
 .budget-warn { color: var(--warning) !important; }
 .budget-over { color: var(--danger) !important; }
 
-/* ── Method Pills ── */
-.method-pills {
-    display: flex;
-    gap: 2px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
-    padding: 2px;
+/* ── Method Pill Row ── */
+.method-row-wrapper {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 10px 28px 0 28px;
+}
+
+.method-pill-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+.method-pill-row label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px !important;
+    border-radius: var(--radius-full) !important;
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--surface-border) !important;
+    cursor: pointer;
+    color: var(--text-secondary) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    font-family: 'Inter', sans-serif !important;
+    margin: 0 !important;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.method-pill-row label:hover {
+    background: var(--bg-hover) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--surface-border-hover) !important;
+}
+
+.method-pill-row input[type="radio"] {
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.method-pill-row input[type="radio"]:checked + label,
+.method-pill-row label:has(input[type="radio"]:checked) {
+    background: var(--accent-muted) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+    font-weight: 600 !important;
 }
 
 /* ── Main Layout ── */
@@ -211,7 +258,7 @@ body {
     border-radius: var(--radius-md);
     border: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Pitch stripes */
@@ -365,11 +412,23 @@ body {
     background: var(--bg-hover);
 }
 
+.ranking-table tbody tr.selected-tr {
+    background: rgba(212, 132, 90, 0.14) !important;
+}
+
+.ranking-table tbody tr.selected-tr:hover {
+    background: rgba(212, 132, 90, 0.20) !important;
+}
+
 .ranking-table tbody td {
     padding: 10px 12px;
     font-size: 13px;
     border-bottom: 1px solid var(--surface-border);
     vertical-align: middle;
+}
+
+.ranking-table tbody tr.selected-tr td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--accent) !important;
 }
 
 .rank-badge {
@@ -489,6 +548,14 @@ body {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-tertiary);
+}
+
+.budget-value-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent-text);
+    letter-spacing: 0.3px;
 }
 
 .budget-slider-container {
@@ -1284,10 +1351,13 @@ input[type="text"]:focus {
 }
 
 .score-cell {
-    display: flex;
+    /* Kept as default table-cell to prevent browser display engine misalignment */
+}
+
+.score-cell-container {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 12px;
 }
 
 /* ── Stability badge ── */

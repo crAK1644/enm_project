@@ -63,9 +63,11 @@ def calculate_mcdm(method_name: str, matrix: pd.DataFrame, weights: np.ndarray, 
         'PROMETHEE II': lambda: promethee_ii(matrix.values, weights, criteria_types),
         'VIKOR': lambda: vikor(matrix.values, weights, criteria_types),
         'AHP': lambda: _ahp(matrix, weights, criteria_types),
-        'TOPSIS': lambda: _topsis(matrix, weights, criteria_types),
+        'TOPSIS': lambda: topsis(matrix.values, weights, criteria_types),
         'SAW': lambda: _saw(matrix, weights, criteria_types),
-        'WP': lambda: _wp(matrix, weights, criteria_types)
+        'WP': lambda: _wp(matrix, weights, criteria_types),
+        'WASPAS': lambda: waspas(matrix.values, weights, criteria_types),
+        'CODAS': lambda: codas(matrix.values, weights, criteria_types)
     }
     
     for key in methods:
@@ -324,7 +326,7 @@ def borda_consensus(rank_df):
 
 
 def _borda_consensus_from_methods(matrix, weights, criteria_types):
-    base_methods = ['PROMETHEE II', 'VIKOR', 'AHP', 'TOPSIS', 'SAW', 'WP']
+    base_methods = ['PROMETHEE II', 'VIKOR', 'AHP', 'TOPSIS', 'SAW', 'WP', 'WASPAS', 'CODAS']
     rank_matrix = pd.DataFrame(index=matrix.index)
     for m in base_methods:
         result = calculate_mcdm(m, matrix, weights, criteria_types)
@@ -334,6 +336,9 @@ def _borda_consensus_from_methods(matrix, weights, criteria_types):
         elif m == 'VIKOR':
             Q, _, _, _ = result
             ranks = pd.Series(Q, index=matrix.index).rank(ascending=True, method='min').astype(int)
+        elif m in ('TOPSIS', 'WASPAS', 'CODAS'):
+            scores, _ = result
+            ranks = pd.Series(scores, index=matrix.index).rank(ascending=False, method='min').astype(int)
         else:
             ranks = result.rank(ascending=False, method='min').astype(int)
         rank_matrix[m] = ranks

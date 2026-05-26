@@ -22,7 +22,7 @@ def run_tests():
     
     criteria_config = POSITION_CRITERIA["Forward"]
     
-    methods = ["PROMETHEE II", "VIKOR", "AHP", "TOPSIS", "SAW", "WP", "Borda Consensus"]
+    methods = ["PROMETHEE II", "VIKOR", "AHP", "TOPSIS", "SAW", "WP", "WASPAS", "CODAS", "Borda Consensus"]
     
     # Evaluate with alpha = 0.5 (Shannon Entropy & CRITIC blend)
     alpha = 0.5
