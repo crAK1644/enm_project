@@ -1,122 +1,166 @@
 # Transfer Window Manager
 
-A football manager-style decision support application for evaluating and ranking Premier League players during the transfer window. Built with Python and Dash, it uses two Multi-Criteria Decision Making (MCDM) methods — **PROMETHEE II** and **VIKOR** — combined with the **CRITIC** objective weighting method to rank candidates at each position.
+A Football-Manager-style decision-support app for evaluating Premier League players during the transfer window. Pick a formation, click a position on the pitch to see role-specific MCDM rankings, set a budget, and let the linear-programming optimizer assemble the best XI for you.
 
-## Overview
+Built with **Python + Dash**. Rankings flow from an MCDM engine that supports nine ranking methods, two objective weighting schemes, and a Borda consensus aggregator. Squad selection is solved as an integer linear program via PuLP/CBC.
 
-The app loads FPL player and stats data, merges Transfermarkt market values, and lets you build a squad interactively. Click a position node on the pitch to see a ranked list of the best available players for that role. Assign players, track your budget, and adjust the criteria weights to match your scouting priorities.
+## What's in the box
 
-![screenshot placeholder]
+- **Interactive pitch** — six formations (4-3-3, 4-4-2, 3-5-2, 4-2-3-1, 3-4-3, 5-3-2). Each slot resolves to a specific role (GK/CB/LB/RB/CDM/CM/CAM/LM/RM/LW/RW/ST) with its own criteria set.
+- **Nine MCDM methods** — PROMETHEE II, VIKOR, AHP, TOPSIS, SAW, WP, WASPAS, CODAS, plus a Borda-count Consensus that aggregates them.
+- **Two objective weighting schemes** — CRITIC (variance × dis-correlation) and Shannon Entropy. Sliders let you override either.
+- **Stability badge** — every player's rank under the alternate method, so you can see who's robust vs. method-sensitive.
+- **LP-based squad builder** — set a `Min`/`Max` spend window, click **Optimize XI** for a from-scratch best XI, or **Fill Empty** to keep your manual picks and solve the rest. Preview before applying.
+- **Transfermarkt market values** — committed in `data/market_values.csv`; refresh per transfer window with the scraper.
 
-## Features
+## Quick start
 
-- **Interactive pitch** — select any formation, click a position to see ranked candidates
-- **Two MCDM methods** — switch between PROMETHEE II (outranking flows) and VIKOR (compromise ranking) live
-- **CRITIC weighting** — objective weights computed from data variance and inter-criteria correlation; override any weight with the sliders
-- **Budget tracking** — set a transfer budget, see spend and remaining update in real time as you assign players
-- **Player exclusion** — once a player is assigned to a position, they are removed from all other positions' ranking lists
-- **Formation support** — 4-3-3, 4-4-2, 3-5-2, 4-2-3-1, 3-4-3, 5-3-2
-
-## Project Structure
-
-```
-enm_project/
-├── app.py                        # Dash application — layout and callbacks
-├── requirements.txt
-├── players.csv                   # FPL player roster (id, name, position, team)
-├── playerstats.csv               # FPL cumulative per-gameweek stats
-├── assets/
-│   └── style.css                 # Dark theme stylesheet
-├── data/
-│   └── market_values.csv         # Scraped Transfermarkt market values
-├── mcdm/
-│   ├── criteria.py               # Position criteria definitions and formation layouts
-│   ├── data_processor.py         # Data loading, per-90 computation, DB build
-│   └── engine.py                 # CRITIC, PROMETHEE II, and VIKOR implementations
-└── scraper/
-    └── transfermarkt_scraper.py  # Scrapes market values for all 20 PL teams
-```
-
-## Setup
-
-**Requirements:** Python 3.10+
+Python 3.10+ required.
 
 ```bash
 pip install -r requirements.txt
+python app.py                          # → http://localhost:8050
 ```
 
-**Run the app:**
-
-```bash
-python app.py
-```
-
-Then open [http://localhost:8050](http://localhost:8050) in your browser.
-
-**Refresh market values** (optional — `data/market_values.csv` is included):
+Refresh market values (run at the start of each transfer window):
 
 ```bash
 python scraper/transfermarkt_scraper.py
+python scraper/transfermarkt_scraper.py --dry-run    # just Arsenal, no write
 ```
 
-This scrapes all 20 Premier League team pages on Transfermarkt and writes `data/market_values.csv`. Run it again at the start of each transfer window to get updated values.
+Run the test suite:
 
-## Data Sources
+```bash
+python -m pytest tests/ -v
+```
+
+A pinned `.venv/` is checked in; activate it if you want the exact interpreter the project was developed on.
+
+## How it works
+
+```
+        ┌─────────────────────┐    ┌──────────────────┐    ┌──────────────┐
+        │  data_processor.py  │ →  │   engine.py      │ →  │   app.py     │
+        │  FPL + Transfermkt  │    │ CRITIC / Entropy │    │   Dash UI    │
+        │  per-90 features    │    │ 9 MCDM methods   │    │   callbacks  │
+        └─────────────────────┘    └──────────────────┘    └──────┬───────┘
+                                                                  │
+                                            ┌─────────────────────┘
+                                            ▼
+                                   ┌──────────────────┐
+                                   │  optimizer.py    │
+                                   │  PuLP/CBC ILP    │
+                                   │  budget-bounded  │
+                                   └──────────────────┘
+```
+
+1. **`mcdm/data_processor.py`** joins `players.csv` (FPL roster), `playerstats.csv` (FPL cumulative stats), and `data/market_values.csv` (Transfermarkt). It computes per-90 features, filters to players with **≥ 450 minutes** played, and derives a canonical `role` column from the scraped `main_position`.
+2. **`mcdm/criteria.py`** holds the broad-position fallback criteria, the 12 specific-role criteria sets, slot→role pool mappings, and the formation layouts.
+3. **`mcdm/engine.py`** implements CRITIC, Shannon Entropy, the nine MCDM methods, and a Borda consensus that aggregates ranks across methods. VIKOR's `Q` is inverted to `1 − Q` so "higher is better" holds across the UI.
+4. **`mcdm/optimizer.py`** turns each slot's MCDM ranking into a candidate frame, min-max normalises scores per slot, then solves an integer LP: one player per slot, no player in two slots, `budget_min ≤ Σ price ≤ budget_max`, maximise Σ normalised score.
+5. **`app.py`** is the Dash UI. Callbacks own the cross-cutting state (formation, selected slot, method, weighting, budget window, slider overrides, assigned players, optimizer preview).
+
+## MCDM methods at a glance
+
+| Method | Idea | Score interpretation |
+|---|---|---|
+| PROMETHEE II | Pairwise outranking flows | Net Φ (higher = better) |
+| VIKOR | Compromise ranking | `1 − Q` (higher = better; inverted from raw Q) |
+| AHP | Priority vector via pairwise comparison | Composite priority |
+| TOPSIS | Distance to ideal vs. anti-ideal | Closeness coefficient ∈ [0, 1] |
+| SAW | Weighted sum after normalisation | Linear additive |
+| WP | Weighted product | Multiplicative (penalises weak-on-any) |
+| WASPAS | λ-blend of SAW + WP (λ = 0.5) | Hybrid additive/multiplicative |
+| CODAS | Euclidean distance from anti-ideal, taxicab tiebreak | Higher = farther from worst |
+| Borda Consensus | Ordinal aggregation across all six base methods | Σ (n − rank + 1) |
+
+## Weighting schemes
+
+**CRITIC** — weight ∝ std-dev × Σ(1 − correlation). Rewards criteria that discriminate strongly and aren't redundant with others.
+
+**Shannon Entropy** — weight ∝ (1 − normalised entropy). Rewards criteria with high information content (concentrated, non-uniform columns). A tiny `epsilon = 1e-12` offset keeps the log finite on zero rows.
+
+Both are objective — derived from the data alone. Slider overrides let you push specific criteria up or down; the engine re-normalises on the fly. Switching scheme or position resets sliders to the new objective baseline.
+
+## Position criteria (current)
+
+Criteria are role-specific. Yellow/red cards are intentionally **not** used.
+
+| Role | Criteria |
+|---|---|
+| GK | Saves, Clean Sheets, Save %, Goals Prevented, xGC, Influence |
+| CB | Tackles, CBI, Clean Sheets, Recoveries, Defensive Contribution, xGC, Influence |
+| LB / RB | Tackles, CBI, Recoveries, Defensive Contribution, xA, Assists, Creativity |
+| CDM | Tackles, CBI, Recoveries, Defensive Contribution, BPS, Influence |
+| CM | Goals, Assists, xGI, Creativity, Tackles, Recoveries, Influence |
+| CAM | xA, xG, Goals, Assists, Creativity, Shooting Threat |
+| LM / RM | xA, Assists, Creativity, Shooting Threat, Tackles, Defensive Contribution |
+| LW / RW | xG, xA, xGI, Goals, Goals/xG, Assists, Creativity, Shooting Threat |
+| ST | xG, Goals, Goals/xG, xGI, Shooting Threat, Assists, Aerial Ability, Defensive Contribution |
+
+Role numbering follows the traditional convention: **CDM = 6** (anchor), **CM = 8** (box-to-box), **CAM = 10** (playmaker) — no CDM6/CDM8 splits.
+
+## Squad optimizer (LP)
+
+Click **Optimize XI** to build the best XI from scratch under the budget window. Click **Fill Empty** to keep your manually-assigned players and solve only the empty slots.
+
+The ILP maximises `Σ score_norm` where each slot's MCDM score is min-max normalised to `[0, 1]` before optimisation — this keeps slots on different score scales (e.g. PROMETHEE Φ ≈ 0.02 vs. VIKOR `1−Q` ≈ 0.4) comparable. Constraints:
+
+- exactly one player per slot
+- no player assigned to more than one slot (matters when role pools overlap, e.g. CM ∩ CAM)
+- `budget_min ≤ Σ price + Σ locked_price ≤ budget_max`
+
+Locked players (in "Fill Empty" mode) are kept out of every other slot's candidate set.
+
+Solved via PuLP with the CBC solver (pure pip install, no system dependencies). All 11 slots × hundreds of candidates resolve well under a second.
+
+## Project layout
+
+```
+enm_project/
+├── app.py                        # Dash layout + callbacks
+├── requirements.txt
+├── players.csv                   # FPL roster
+├── playerstats.csv               # FPL cumulative per-gameweek stats
+├── assets/
+│   └── style.css                 # Dark theme
+├── data/
+│   └── market_values.csv         # Transfermarkt values + main_position
+├── mcdm/
+│   ├── criteria.py               # Role criteria, slot→role mapping, formations
+│   ├── data_processor.py         # Feature engineering, role resolution
+│   ├── engine.py                 # CRITIC, Entropy, 9 MCDM methods, Borda
+│   └── optimizer.py              # PuLP ILP squad builder
+├── scraper/
+│   └── transfermarkt_scraper.py  # Pulls market values + main_position
+└── tests/
+    ├── test_engine_integration.py
+    ├── test_mcdm_comparator.py
+    └── test_optimizer.py         # 14 pytest cases for the LP
+```
+
+## Data sources
 
 | File | Source | Description |
 |---|---|---|
-| `players.csv` | Fantasy Premier League API | Player roster: id, name, position, team |
+| `players.csv` | Fantasy Premier League API | Roster: id, name, position, team |
 | `playerstats.csv` | Fantasy Premier League API | Cumulative stats per gameweek |
-| `data/market_values.csv` | Transfermarkt (scraped) | Market values in €m for PL players |
+| `data/market_values.csv` | Transfermarkt (scraped) | Market values €m + `main_position` |
 
-Only players with **450+ minutes played** are included in rankings (roughly 5 full matches).
+Players with fewer than 450 minutes played are excluded from rankings (≈ 5 full matches' worth of evidence).
 
-## MCDM & Consensus Methods
+## Typical workflow
 
-### ⚖️ Objective Weighting & Hybridization (Shannon-CRITIC)
-Criteria weights are determined objectively from the data, combining two complementary Operations Research methodologies:
-1. **CRITIC:** Focuses on inter-criteria correlation and column variance.
-2. **Shannon Entropy:** Measures informational uncertainty and diversification degree.
-   * *Epsilon Limit:* A structural probability offset of `epsilon = 1e-12` is applied to satisfy logarithmic constraints and prevent domain errors.
-3. **$\alpha$-Blending Interface:** Blends both models using a compromise slider:
-   $$W_{h} = \alpha W_{c} + (1 - \alpha) W_{e}$$
+1. **Pick a formation** and set the budget window (`Min` / `Max`).
+2. **Click a position** on the pitch — the right panel shows ranked candidates for that role under the active method and weighting.
+3. **Adjust weights** with the sliders if a specific criterion matters more for your tactical plan. Other unrelated controls won't reset your tuning.
+4. **Click a player row** to assign them. They're locked out of every other slot's ranking.
+5. **Optimize**: hit **Fill Empty** to LP-solve the remaining slots, or **Optimize XI** to rebuild from scratch. Preview the proposed XI, click **Apply** to commit.
+6. **Switch methods** to gut-check stability — players who stay top of the rankings across PROMETHEE/VIKOR/TOPSIS are robust picks.
 
----
+## Notes
 
-### 🚀 Vectorized Mathematical Engines (All $O(m \times n)$ Complexity)
-All six algorithms are fully vectorized using NumPy and Pandas for rapid runtime calculations:
-- **PROMETHEE II:** Outranking method calculating Net Flows ($\Phi$).
-- **VIKOR:** Compromise ranking balancing utility and regret (inverted as $1.0 - Q$ for display uniformity).
-- **AHP (Analytic Hierarchy Process):** Derives composite alternatives' priority vectors.
-- **TOPSIS:** Spatial closeness calculation matching ideal positive and negative solutions.
-- **SAW (Simple Additive Weighting):** Fast linear min-max aggregation.
-- **WP (Weighted Product):** Product scoring using exponential weights.
-  * *Epsilon Limit:* Extends numerical stability using an offset matrix boundary of `epsilon = 1e-5` to completely avoid zero-base negative exponent division-by-zero crashes on cost attributes.
-
----
-
-### 🗳️ Master Borda Count Consensus Aggregator
-Synthesizes the ordinal outputs from all 6 active algorithms into a single mathematically sound consensus team recommendation. Point distribution is computed as:
-$$\text{Points} = (\text{Alternatives}) - \text{Rank} + 1$$
-Consensus points are summed across the 6 models to produce a unified compromise squad.
-
-## Position Criteria
-
-| Position | Criteria |
-|---|---|
-| Forward | xG, Goals, Assists, Shooting Threat, Creativity, Defensive Contribution, Aerial Ability, Yellow Cards, Red Cards |
-| Midfielder | xA, Goals, Assists, Shooting Threat, Creativity, Tackles, Interceptions, Yellow Cards, Red Cards |
-| Defender | Goals, Tackles, Interceptions, Clean Sheets, Influence, Yellow Cards, Red Cards |
-| Goalkeeper | Saves, Clean Sheets, Goals Conceded, Influence, Yellow Cards, Red Cards |
-
-Yellow and Red Cards are cost criteria (lower is better). All others are benefit criteria.
-
-## Usage
-
-1. **Set your budget** using the input or slider at the top
-2. **Select a formation** from the dropdown
-3. **Click a position node** on the pitch — the right panel shows ranked players for that role
-4. **Click a player row** to assign them to that position
-5. **Adjust criteria weights** in the panel at the bottom — rankings update immediately
-6. **Switch methods** (PROMETHEE / VIKOR) with the toggle in the header
-7. **Clear Squad** to start over
+- VIKOR's raw `Q` is inverted to `1 − Q` for display so "higher is better" holds across every method in the UI.
+- The CBC solver is bundled with PuLP — no system install needed.
+- The scraper writes `data/market_values.csv` and is **not** imported by the app; the committed CSV is the runtime source of truth.
