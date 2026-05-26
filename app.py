@@ -812,28 +812,6 @@ app.layout = html.Div([
                 dcc.RadioItems(
                     id="weighting-selector",
                     options=[
-                        {"label": "PROMETHEE II", "value": "promethee"},
-                        {"label": "VIKOR", "value": "vikor"},
-                        {"label": "AHP", "value": "ahp"},
-                        {"label": "TOPSIS", "value": "topsis"},
-                        {"label": "SAW", "value": "saw"},
-                        {"label": "WP", "value": "wp"},
-                        {"label": "WASPAS", "value": "waspas"},
-                        {"label": "CODAS", "value": "codas"},
-                        {"label": "Borda Consensus", "value": "borda_consensus"},
-                    ],
-                    value="promethee",
-                    clearable=False,
-                    searchable=False,
-                    className="custom-grey-dropdown method-dropdown",
-                ),
-            ], className="header-stat header-stat-method"),
-
-            html.Div([
-                html.Div("Weighting", className="header-stat-label"),
-                dcc.RadioItems(
-                    id="weighting-selector",
-                    options=[
                         {"label": "CRITIC",  "value": "critic"},
                         {"label": "Entropy", "value": "entropy"},
                     ],
