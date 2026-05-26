@@ -877,10 +877,14 @@ app.layout = html.Div([
     html.Div([
         html.Div([
             html.Div([
-                html.Div("Budget", className="panel-title"),
+                html.Div([
+                    html.Span("Max Budget: "),
+                    html.Span("€200M", id="budget-value-display", style={"color": "var(--accent)", "fontWeight": "700"}),
+                ], className="panel-title",
+                   title="Maximum budget limit to suggest a team (Optimize XI) or fill empty slots (Fill Empty)"),
                 html.Div([
                     html.Div([
-                        html.Span("Min", className="budget-mini-label"),
+                        html.Span("Min Budget", className="budget-mini-label"),
                         dcc.Input(
                             id="min-budget-input",
                             type="number",
@@ -890,18 +894,7 @@ app.layout = html.Div([
                             className="budget-mini-input",
                         ),
                     ], className="budget-mini-group",
-                       title="Minimum total spend for the optimizer"),
-                    html.Div([
-                        html.Span("€", className="budget-currency"),
-                        dcc.Input(
-                            id="budget-input",
-                            type="number",
-                            value=200,
-                            min=10, max=2000, step=10,
-                            style={"width": "90px", "textAlign": "center"},
-                        ),
-                        html.Span("M", className="budget-currency"),
-                    ], className="budget-input-group"),
+                       title="Minimum spend limit to suggest a team (Optimize XI) or fill empty slots (Fill Empty)"),
                 ], className="budget-input-row"),
             ], className="panel-header"),
 
@@ -1128,39 +1121,19 @@ def _build_optimizer_inputs(formation, method, weighting, assigned, fill_only):
 # Callbacks
 # ─────────────────────────────────────────────────────────────
 
-# Budget sync — slider and text input box synchronized
+# Budget sync — slider updates store and header display
 @app.callback(
     [Output("store-budget", "data"),
-     Output("budget-slider", "value"),
-     Output("budget-input", "value"),
      Output("budget-value-display", "children")],
-    [Input("budget-slider", "value"),
-     Input("budget-input", "value")],
-    [State("store-budget", "data")],
+    Input("budget-slider", "value"),
 )
-def sync_budget(slider_val, input_val, current_budget):
-    ctx = callback_context
-    triggered_id = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
-
-    if "budget-slider" in triggered_id:
-        val = slider_val
-    elif "budget-input" in triggered_id:
-        val = input_val
-    else:
-        val = current_budget or 200
-
-    if val is None:
-        val = 200
-
-    # Force value bounds
-    val = max(10, min(2000, val))
-
+def sync_budget(slider_val):
+    val = slider_val or 200
     if val >= 1000:
         label = f"€{val / 1000:.1f}bn"
     else:
         label = f"€{val}M"
-
-    return val, val, val, label
+    return val, label
 
 
 @app.callback(
