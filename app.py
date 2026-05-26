@@ -808,6 +808,28 @@ app.layout = html.Div([
 
         html.Div([
             html.Div([
+                html.Div("Method", className="header-stat-label"),
+                dcc.Dropdown(
+                    id="method-selector",
+                    options=[
+                        {"label": "PROMETHEE II", "value": "PROMETHEE II"},
+                        {"label": "VIKOR", "value": "VIKOR"},
+                        {"label": "AHP", "value": "AHP"},
+                        {"label": "TOPSIS", "value": "TOPSIS"},
+                        {"label": "SAW", "value": "SAW"},
+                        {"label": "WP", "value": "WP"},
+                        {"label": "WASPAS", "value": "WASPAS"},
+                        {"label": "CODAS", "value": "CODAS"},
+                        {"label": "Borda Consensus", "value": "Borda Consensus"},
+                    ],
+                    value="PROMETHEE II",
+                    clearable=False,
+                    searchable=False,
+                    className="custom-grey-dropdown method-dropdown",
+                ),
+            ], className="header-stat header-stat-method"),
+
+            html.Div([
                 html.Div("Weighting", className="header-stat-label"),
                 dcc.RadioItems(
                     id="weighting-selector",
@@ -835,27 +857,6 @@ app.layout = html.Div([
             ], className="header-stat"),
         ], className="header-controls"),
     ], className="header-bar"),
-
-    # ── Method Selector (pill row) ──
-    html.Div([
-        dcc.RadioItems(
-            id="method-selector",
-            options=[
-                {"label": "PROMETHEE II", "value": "PROMETHEE II"},
-                {"label": "VIKOR", "value": "VIKOR"},
-                {"label": "AHP", "value": "AHP"},
-                {"label": "TOPSIS", "value": "TOPSIS"},
-                {"label": "SAW", "value": "SAW"},
-                {"label": "WP", "value": "WP"},
-                {"label": "WASPAS", "value": "WASPAS"},
-                {"label": "CODAS", "value": "CODAS"},
-                {"label": "Borda Consensus", "value": "Borda Consensus"},
-            ],
-            value="PROMETHEE II",
-            inline=True,
-            className="method-pill-row",
-        ),
-    ], className="method-row-wrapper"),
 
     # ── Budget Bar ──
     html.Div([
