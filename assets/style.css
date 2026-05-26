@@ -622,6 +622,205 @@ body {
     background: var(--danger-muted);
 }
 
+/* ── Subtle accent variant of btn-secondary (used for primary optimizer action) ── */
+.btn-secondary-accent {
+    color: var(--accent-text);
+    border-color: var(--accent-muted);
+}
+.btn-secondary-accent:hover {
+    background: var(--accent-muted);
+    color: var(--accent-hover);
+    border-color: var(--accent);
+}
+
+/* Budget input row — main pill + a smaller "Min" pill beside it */
+.budget-input-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.budget-mini-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px 0 0;
+    border-right: 1px solid var(--surface-border);
+    height: 28px;
+}
+.budget-mini-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+}
+.budget-mini-input .dash-input-element {
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    padding: 3px 4px !important;
+}
+.budget-mini-input .dash-input-container,
+.budget-mini-input.dash-input-container {
+    border-radius: var(--radius-sm) !important;
+}
+
+/* Optimizer preview panel — uses the standard .panel chrome, no accent gimmicks */
+.optimizer-preview-wrapper { padding: 0 28px; }
+.optimizer-preview-inner {
+    max-width: 1500px;
+    margin: 0 auto 20px auto;
+}
+.optimizer-mode-tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    padding: 3px 8px;
+    border: 1px solid var(--surface-border-hover);
+    border-radius: var(--radius-sm);
+}
+/* Preview lives in a constrained column, not full grid width */
+.optimizer-preview-inner {
+    max-width: 760px;
+    margin: 0 auto 20px auto;
+}
+
+/* Compact one-line summary strip — mirrors the header-stat language */
+.opt-summary-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 2px 14px 2px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--surface-border);
+    flex-wrap: wrap;
+}
+.opt-summary-cost-cell {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.opt-summary-cost {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.opt-summary-of {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.opt-summary-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--surface-border);
+}
+.opt-summary-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.opt-summary-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+.opt-summary-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+.opt-summary-bar {
+    flex: 1;
+    min-width: 80px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg-elevated);
+    overflow: hidden;
+}
+.opt-summary-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Table inherits .ranking-table; just tweak alignment/widths */
+.opt-table thead th { padding: 8px 12px; }
+.opt-table .opt-cell-slot {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    width: 56px;
+}
+.opt-table .opt-cell-teamabbr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    width: 60px;
+}
+.opt-table .opt-cell-price {
+    text-align: right;
+    white-space: nowrap;
+    width: 130px;
+}
+.opt-table .opt-cell-price .market-value { margin-right: 6px; }
+.opt-table .player-name-cell { font-weight: 500; }
+.opt-table .team-label { font-size: 10px; }
+
+/* Section header rows inside the table */
+.opt-line-row td.opt-line-th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    padding: 14px 12px 6px 12px;
+    border-bottom: 1px solid var(--surface-border);
+    background: transparent;
+}
+.opt-tr-locked .player-name-cell { color: var(--text-secondary); }
+.opt-row-locktag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: var(--accent-text);
+    background: var(--accent-muted);
+    padding: 1px 6px;
+    border-radius: 3px;
+    vertical-align: middle;
+}
+
+.opt-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--surface-border);
+}
+.optimizer-infeasible {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+.optimizer-warn-text {
+    flex: 1;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
 /* ── Dash Overrides ── */
 .Select-control,
 .Select-menu-outer {
