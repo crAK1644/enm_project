@@ -39,6 +39,72 @@ app = dash.Dash(
     ],
 )
 
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <style>
+            /* Force method dropdown to render block to fix layout */
+            .header-stat > div#method-selector,
+            .header-stat > div[id$="-selector"] {
+                display: block !important;
+            }
+            
+            /* Specific dark theme styles for the dropdown control and option items */
+            html body .dash-dropdown,
+            html body .dash-dropdown *,
+            html body .Select,
+            html body .Select-control,
+            html body .Select-menu-outer,
+            html body .Select-option,
+            html body .VirtualizedSelectOption,
+            html body [class*="Select"] {
+                background-color: #2a2a2f !important;
+                background: #2a2a2f !important;
+                color: #ececf0 !important;
+                border-color: rgba(255, 255, 255, 0.12) !important;
+                -webkit-text-fill-color: #ececf0 !important;
+            }
+            
+            html body .Select-option.is-focused,
+            html body .VirtualizedSelectFocusedOption,
+            html body [class*="option"]:hover,
+            html body [class*="option"]:focus,
+            html body [class*="Focused"] {
+                background-color: #38383f !important;
+                background: #38383f !important;
+                color: #ececf0 !important;
+            }
+            
+            html body .Select-value-label,
+            html body [class*="value-label"],
+            html body [class*="singleValue"] {
+                color: #ececf0 !important;
+            }
+            
+            html body .Select-arrow,
+            html body [class*="indicatorSeparator"],
+            html body [class*="dropdownIndicator"] {
+                border-top-color: #a0a0aa !important;
+                color: #a0a0aa !important;
+            }
+        </style>
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
+
 # Load player database
 print("Loading player database...")
 PLAYER_DB = build_player_database(PROJECT_DIR, min_minutes=450)
@@ -451,54 +517,6 @@ def build_player_detail(player_id, position_data):
 # ─────────────────────────────────────────────────────────────
 
 app.layout = html.Div([
-    # Inline Style to immediately bypass browser caching of style.css
-    html.Style("""
-        /* Force method dropdown to render block to fix layout */
-        .header-stat > div#method-selector,
-        .header-stat > div[id$="-selector"] {
-            display: block !important;
-        }
-        
-        /* Specific dark theme styles for the dropdown control and option items */
-        html body .dash-dropdown,
-        html body .dash-dropdown *,
-        html body .Select,
-        html body .Select-control,
-        html body .Select-menu-outer,
-        html body .Select-option,
-        html body .VirtualizedSelectOption,
-        html body [class*="Select"] {
-            background-color: #2a2a2f !important;
-            background: #2a2a2f !important;
-            color: #ececf0 !important;
-            border-color: rgba(255, 255, 255, 0.12) !important;
-            -webkit-text-fill-color: #ececf0 !important;
-        }
-        
-        html body .Select-option.is-focused,
-        html body .VirtualizedSelectFocusedOption,
-        html body [class*="option"]:hover,
-        html body [class*="option"]:focus,
-        html body [class*="Focused"] {
-            background-color: #38383f !important;
-            background: #38383f !important;
-            color: #ececf0 !important;
-        }
-        
-        html body .Select-value-label,
-        html body [class*="value-label"],
-        html body [class*="singleValue"] {
-            color: #ececf0 !important;
-        }
-        
-        html body .Select-arrow,
-        html body [class*="indicatorSeparator"],
-        html body [class*="dropdownIndicator"] {
-            border-top-color: #a0a0aa !important;
-            color: #a0a0aa !important;
-        }
-    """),
-
     # Stores
     dcc.Store(id="store-assigned-players", data={}),
     dcc.Store(id="store-selected-position", data=None),
