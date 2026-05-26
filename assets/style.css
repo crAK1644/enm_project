@@ -1264,9 +1264,9 @@ input:-webkit-autofill:active {
     color: var(--text-primary) !important;
 }
 
-/* ── Header radios (method + weighting) — pill style ── */
+/* ── Header radios (weighting) — pill style ── */
 .header-stat .dash-radio-items,
-.header-stat > div[id$="-selector"] {
+.header-stat > div#weighting-selector {
     display: flex;
     gap: 4px;
 }

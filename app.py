@@ -487,8 +487,8 @@ app.layout = html.Div([
                     value="PROMETHEE II",
                     clearable=False,
                     searchable=False,
-                    className="custom-grey-dropdown",
-                    style={"width": "160px", "fontSize": "12px", "color": "#000"},
+                    className="dash-dropdown",
+                    style={"width": "180px", "fontSize": "13px"},
                 ),
             ], className="header-stat"),
 
