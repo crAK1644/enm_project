@@ -450,7 +450,8 @@ WEIGHTING_EXPLANATIONS = {
 
 def build_method_explanation(method, weighting):
     """Plain-English description of the active method + weighting scheme."""
-    info = METHOD_EXPLANATIONS.get(method)
+    method_key = METHOD_ALIASES.get(str(method).strip().lower(), str(method).strip().lower())
+    info = METHOD_EXPLANATIONS.get(method_key)
     if not info:
         return None
     weight_label = "Entropy" if weighting == "entropy" else "CRITIC"
@@ -547,7 +548,8 @@ WEIGHTING_EXPLANATIONS = {
 
 def build_method_explanation(method, weighting):
     """Plain-English description of the active method + weighting scheme."""
-    info = METHOD_EXPLANATIONS.get(method)
+    method_key = METHOD_ALIASES.get(str(method).strip().lower(), str(method).strip().lower())
+    info = METHOD_EXPLANATIONS.get(method_key)
     if not info:
         return None
     weight_label = "Entropy" if weighting == "entropy" else "CRITIC"
@@ -671,7 +673,7 @@ def build_weights(criteria_config, objective_w, applied_w, active_criteria, weig
 
         items.append(html.Div([
             html.Div([
-                html.Div(info["label"], className="weight-name", style={"flex": "1"}),
+                html.Div(info["label"].replace("<br>", " "), className="weight-name", style={"flex": "1"}),
                 html.Div(f"{aw:.3f}", className="weight-value",
                          id={"type": "weight-display", "index": name}),
             ], className="weight-label"),
@@ -710,7 +712,20 @@ def build_player_detail(player_id, position_data):
         player_scores = avg_scores
         player_name   = "Position average"
     criteria_keys = list(labels.keys())
-    criteria_names = [labels[k] for k in criteria_keys]
+    criteria_names = []
+    for k in criteria_keys:
+        lbl = labels[k]
+        # Dynamically wrap long labels to prevent clipping on small dimensions without shrinking the radar
+        if "<br>" not in lbl:
+            lbl = (lbl.replace(" / ", " /<br>")
+                      .replace(" (", "<br>(")
+                      .replace(" Prevented", "<br>Prevented")
+                      .replace(" Conceded", "<br>Conceded")
+                      .replace(" Contribution", "<br>Contribution")
+                      .replace(" Ability", "<br>Ability")
+                      .replace(" Threat", "<br>Threat")
+                      .replace(" Work", "<br>Work"))
+        criteria_names.append(lbl)
 
     p_vals  = [player_scores.get(k, 0) for k in criteria_keys]
     av_vals = [avg_scores.get(k, 0)    for k in criteria_keys]
@@ -749,7 +764,7 @@ def build_player_detail(player_id, position_data):
         showlegend=True,
         legend=dict(font=dict(color="#a0a0aa", size=10), bgcolor="rgba(0,0,0,0)",
                     orientation="h", y=-0.12),
-        margin=dict(l=115, r=115, t=40, b=40),
+        margin=dict(l=85, r=85, t=40, b=40),
         height=290,
     )
 
@@ -1616,11 +1631,14 @@ def update_rankings(selected_pos, method, weighting, slider_values,
 
     weights = build_weights(criteria_config, objective_w, applied_w, active, weighting=weighting)
 
-    is_disabled = True
-    if "weight-slider" in triggered_id:
-        is_disabled = False
-    elif use_custom and custom_weights is not None:
-        is_disabled = False
+    # Check if custom weights are different from objective weights to resolve feedback loop
+    is_different = False
+    if custom_weights and objective_w:
+        for name in active:
+            if abs(custom_weights.get(name, 0) - objective_w.get(name, 0)) > 1e-4:
+                is_different = True
+                break
+    is_disabled = not is_different
 
     return table, weights, cache, pos_data, btn_text, is_disabled
 
@@ -1637,6 +1655,10 @@ def update_rankings(selected_pos, method, weighting, slider_values,
 )
 def update_method_explanation(method, weighting, selected_pos):
     return build_method_explanation(method, weighting)
+
+
+
+
 
 
 

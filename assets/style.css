@@ -49,7 +49,7 @@
     /* Gold rankings */
     --gold: #fbbf24;
     --silver: #94a3b8;
-    --bronze: #d97706;
+    --bronze: #cd7f32;
     
     /* Shadows */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -453,7 +453,11 @@ body {
     color: var(--silver);
     border: 1px solid var(--silver);
 }
-.rank-3 { background: var(--bronze); color: #fff; }
+.rank-3 {
+    background: rgba(205, 127, 50, 0.18);
+    color: var(--bronze);
+    border: 1px solid var(--bronze);
+}
 .rank-other { background: var(--bg-elevated); color: var(--text-secondary); }
 
 .score-bar {
@@ -896,6 +900,17 @@ body {
     color: var(--text-primary) !important;
 }
 
+.Select-menu-outer,
+.Select-menu,
+.VirtualizedSelect,
+.ReactVirtualized__Grid,
+.ReactVirtualized__List {
+    max-height: 400px !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    z-index: 9999 !important;
+}
+
 .Select-value-label,
 .Select-placeholder {
     color: var(--text-primary) !important;
@@ -995,9 +1010,14 @@ input[type="text"]:focus {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
     color: var(--text-primary) !important;
     padding: 4px !important;
-    overflow: hidden;
+    z-index: 9999 !important;
 }
-.dash-dropdown-options { background: transparent !important; padding: 0 !important; }
+.dash-dropdown-options {
+    background: transparent !important;
+    padding: 0 !important;
+    max-height: 250px !important;
+    overflow-y: auto !important;
+}
 .dash-dropdown-option {
     background: transparent !important;
     color: var(--text-primary) !important;
@@ -1064,10 +1084,15 @@ input[type="text"]:focus {
     border: 1px solid var(--surface-border-hover) !important;
     border-radius: var(--radius-sm) !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
-    overflow: hidden;
     margin-top: 4px !important;
+    max-height: 400px !important;
+    z-index: 9999 !important;
 }
-.Select__menu-list { padding: 4px !important; }
+.Select__menu-list {
+    padding: 4px !important;
+    max-height: 400px !important;
+    overflow-y: visible !important;
+}
 .Select__option {
     background: transparent !important;
     color: var(--text-primary) !important;
@@ -1423,7 +1448,7 @@ input[type="text"]:focus {
 
 .detail-body {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 56% 44%;
     gap: 0;
 }
 
