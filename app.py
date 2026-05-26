@@ -22,7 +22,7 @@ sys.path.insert(0, PROJECT_DIR)
 
 from mcdm.data_processor import build_player_database, get_position_players, get_role_players
 from mcdm.criteria import POSITION_CRITERIA, ROLE_CRITERIA, SLOT_TO_ROLE, FORMATIONS
-from mcdm.engine import rank_players
+from mcdm.engine import rank_players, METHOD_ALIASES
 from mcdm.optimizer import optimize_squad
 
 # ─────────────────────────────────────────────────────────────
@@ -1561,7 +1561,8 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         "codas": "promethee",
         "borda_consensus": "promethee",
     }
-    alt_method = alt_map.get(method, "promethee")
+    method_key = METHOD_ALIASES.get(str(method).strip().lower(), str(method).strip().lower())
+    alt_method = alt_map.get(method_key, "promethee")
     try:
         alt_ranked, _, _ = rank_players(players, active_config, method=alt_method,
                                         custom_weights=custom_weights, weighting=weighting)
@@ -1614,7 +1615,6 @@ def update_rankings(selected_pos, method, weighting, slider_values,
              for _, row in ranked_df.iterrows()}
 
     weights = build_weights(criteria_config, objective_w, applied_w, active, weighting=weighting)
-    return table, weights, cache, pos_data
 
     is_disabled = True
     if "weight-slider" in triggered_id:
@@ -1638,18 +1638,6 @@ def update_rankings(selected_pos, method, weighting, slider_values,
 def update_method_explanation(method, weighting, selected_pos):
     return build_method_explanation(method, weighting)
 
-
-
-
-# Method + weighting explanation card
-@app.callback(
-    Output("method-explanation", "children"),
-    [Input("method-selector", "value"),
-     Input("weighting-selector", "value"),
-     Input("store-selected-position", "data")],
-)
-def update_method_explanation(method, weighting, selected_pos):
-    return build_method_explanation(method, weighting)
 
 
 # Render player detail panel
@@ -1740,6 +1728,12 @@ def handle_player_assignment_and_selection(player_clicks, clear_clicks, remove_c
                     assigned[selected_pos]            = info.get("name", "?")
                     assigned[f"{selected_pos}_value"] = info.get("value", 0)
                     assigned[f"{selected_pos}_id"]    = pid
+
+                    # Direct click toggles details or selects player instantly:
+                    if current_player is not None and str(current_player) == pid:
+                        new_selected_player = None
+                    else:
+                        new_selected_player = pid
             except (json.JSONDecodeError, KeyError):
                 pass
 
