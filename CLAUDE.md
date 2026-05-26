@@ -17,15 +17,20 @@ python scraper/transfermarkt_scraper.py
 
 # Sanity-check the scraper on just Arsenal (no CSV write, prints rows)
 python scraper/transfermarkt_scraper.py --dry-run
+
+# Run tests (pytest). The optimizer suite is the primary regression net.
+python -m pytest tests/ -v
+python -m pytest tests/test_optimizer.py -v       # just the LP suite
+python -m pytest tests/test_optimizer.py::test_no_player_assigned_to_two_slots
 ```
 
-There is no test suite, linter, or build step configured.
+There is no linter or build step configured. The test suite is `pytest`-based; `pulp` is a runtime dep (CBC solver ships with the wheel).
 
 A local `.venv/` is checked in alongside the source; activate it before running if you want the pinned interpreter.
 
 ## Architecture
 
-Football-Manager-style transfer-window decision support. Single-page Dash app backed by an MCDM engine that supports five ranking methods (PROMETHEE II, VIKOR, TOPSIS, WASPAS, CODAS) and two objective weighting schemes (CRITIC, Shannon Entropy). Big-picture split is **data prep → MCDM engine → Dash UI**, with criteria + role mapping sitting between them.
+Football-Manager-style transfer-window decision support. Single-page Dash app backed by an MCDM engine that supports nine ranking methods (PROMETHEE II, VIKOR, AHP, TOPSIS, SAW, WP, WASPAS, CODAS, Borda Consensus) and two objective weighting schemes (CRITIC, Shannon Entropy). A PuLP/CBC ILP optimizer turns the per-slot rankings into a budget-bounded XI. Big-picture split is **data prep → MCDM engine → Dash UI**, with criteria + role mapping sitting between them, and **optimizer** as a sibling of the engine driven by the UI.
 
 ### Data flow
 
@@ -58,22 +63,36 @@ Football-Manager-style transfer-window decision support. Single-page Dash app ba
    - **CRITIC** — objective weight derivation: std-dev × Σ(1 − correlation). Discrimination × non-redundancy.
    - **Shannon Entropy weighting** — alternative objective scheme; weight ∝ (1 − entropy of the normalized column).
    - **PROMETHEE II** — net outranking flow Φ; higher is better.
-   - **VIKOR** — compromise ranking via S/R/Q; lower Q is better, **but the app inverts Q for display so higher = better in the UI for all five methods**. Preserve this inversion when touching ranking output.
+   - **VIKOR** — compromise ranking via S/R/Q; lower Q is better, **but the app inverts Q (`1 − Q`) so higher = better in the UI across every method**. Preserve this inversion when touching ranking output.
+   - **AHP** — priority vector derived from a pairwise comparison matrix.
    - **TOPSIS** — closeness coefficient to ideal vs. anti-ideal; 0–1, higher is better.
-   - **WASPAS** — λ = 0.5 hybrid of WSM (additive) + WPM (multiplicative); penalizes weak-on-any-single-criterion profiles.
+   - **SAW** — Simple Additive Weighting; linear sum after min-max normalisation.
+   - **WP** — Weighted Product; multiplicative scoring, penalises weak-on-any criterion. Uses an `epsilon = 1e-5` offset on the matrix to avoid zero-base negative exponents.
+   - **WASPAS** — λ = 0.5 hybrid of SAW + WP.
    - **CODAS** — Euclidean distance from anti-ideal with Taxicab tie-breaker.
+   - **Borda Consensus** — aggregates ranks across the other six base methods via `points = n − rank + 1`.
 
-   `rank_players(players, criteria_cfg, method, custom_weights, weighting)` returns `(ranked_df, objective_weights_dict, applied_weights_dict)`. `SUPPORTED_METHODS` / `SUPPORTED_WEIGHTINGS` constants gate valid inputs.
+   `rank_players(players, criteria_cfg, method, custom_weights, weighting)` returns `(ranked_df, objective_weights_dict, applied_weights_dict)`. `SUPPORTED_METHODS` / `SUPPORTED_WEIGHTINGS` / `METHOD_ALIASES` constants gate valid inputs.
 
-4. **`app.py`** is the entire Dash UI — layout and callbacks in one file. Callbacks own the cross-cutting state:
-   - Selected formation, selected position node, selected method, selected weighting scheme, budget, slider weight overrides, selected player (for the radar/breakdown panel).
+4. **`mcdm/optimizer.py`** is the LP-based squad builder. `optimize_squad(slot_candidates, locked, budget_min, budget_max)` consumes per-slot candidate frames (`id, name, team, price, score`) that the caller has already produced via `rank_players`, min-max-normalises `score` to `[0, 1]` **per slot** (so methods on different scales — PROMETHEE Φ ≈ 0.02 vs. VIKOR `1−Q` ≈ 0.4 — mix cleanly), then solves a PuLP/CBC ILP:
+   - binary `x[slot, player_id]`
+   - exactly one player per slot: `Σ_p x[slot,p] = 1`
+   - no player in two slots: `Σ_slot x[slot,p] ≤ 1` for any `p` eligible in more than one slot pool (matters for CM ∩ CAM type overlaps)
+   - `budget_min ≤ Σ price·x + locked_cost ≤ budget_max`
+   - maximise `Σ score_norm · x`
+
+   The optimizer is pure and Dash-agnostic — `app.py:_build_optimizer_inputs` is the bridge that resolves each slot's role pool, calls `rank_players`, and packs the candidate frames + locked dict. Returns `{status, message, picks, total_cost, total_score}`; `status="infeasible"` carries a user-readable reason (locked overspend, empty pool, budget too tight).
+
+5. **`app.py`** is the entire Dash UI — layout and callbacks in one file. Callbacks own the cross-cutting state:
+   - Selected formation, selected position node, selected method, selected weighting scheme, budget (max + min), slider weight overrides, selected player (for the radar/breakdown panel), optimizer-preview store.
    - **Stable weights across unrelated changes**: in `update_rankings`, slider values are only rebalanced when a `weight-slider` is the actual trigger. `reset-weights-btn`, `store-selected-position`, and `weighting-selector` drop to fresh objective weights; budget / search / assignment changes pass current slider values through untouched. Breaking this causes weights to silently re-normalize every time the user touches an unrelated control.
-   - **Assigned-player exclusion**: once a player is assigned to a slot, they must be filtered out of every other position's candidate list. This invariant lives in the callback layer (`update_rankings` filters by `assigned_ids`), not the engine.
+   - **Assigned-player exclusion**: once a player is assigned to a slot, they must be filtered out of every other position's candidate list. This invariant lives in the callback layer (`update_rankings` filters by `assigned_ids`), not the engine. The optimizer enforces it independently via its own no-double-assignment ILP constraint.
    - **Phantom trigger guards**: both `select_player` and `assign_player` early-return when `all((n or 0) == 0 for n in player_clicks)` because pattern-matching components re-emit `n_clicks=0` on table re-render. Without these guards, the first row would auto-assign whenever the table refreshes.
    - **Method/weighting explanation panel** is a standalone panel below the main grid (always renders); content comes from `METHOD_EXPLANATIONS` / `WEIGHTING_EXPLANATIONS` dicts at module scope.
    - **Player infographic always renders** once a position is selected — `build_player_detail` falls back to the position-average radar when no player is selected, and overlays the player when one is.
+   - **Optimizer callbacks**: `run_optimizer` (Fill Empty / Optimize XI buttons or formation change) writes to `store-optimizer-preview`; `render_optimizer_preview` renders the panel from that store; `apply_or_discard_preview` writes to `store-assigned-players` with `allow_duplicate=True` (the only other writer to that store is `assign_player`). "Fill Empty" mode locks user picks and reduces the ILP to empty slots; "Optimize XI" wipes the formation's picks before applying.
 
-5. **`scraper/transfermarkt_scraper.py`** is a standalone script (not imported by the app). It iterates all 20 Premier League team pages and extracts player name + `main_position` + market value row-by-row from the `td.posrela` cell's nested `inline-table`, then fuzzy-matches Transfermarkt names to `players.csv` via `SequenceMatcher` (threshold 0.6). Writes `data/market_values.csv` with `main_position` (consumed by `data_processor.normalize_tm_position`). The committed CSV is the source of truth at runtime; re-run only when you want fresh values.
+6. **`scraper/transfermarkt_scraper.py`** is a standalone script (not imported by the app). It iterates all 20 Premier League team pages and extracts player name + `main_position` + market value row-by-row from the `td.posrela` cell's nested `inline-table`, then fuzzy-matches Transfermarkt names to `players.csv` via `SequenceMatcher` (threshold 0.6). Writes `data/market_values.csv` with `main_position` (consumed by `data_processor.normalize_tm_position`). The committed CSV is the source of truth at runtime; re-run only when you want fresh values.
 
 ### Conventions worth knowing
 
@@ -82,6 +101,8 @@ Football-Manager-style transfer-window decision support. Single-page Dash app ba
 - **Role numbering** is traditional: **CDM = 6, CM = 8, CAM = 10** — bare names only, never CDM6/CDM8 splits. The user is strict about this.
 - **Slot-name digits** (`CB1`, `CB2`, `CDM1`) are uniqueness suffixes for the formation graph; display strips trailing digits via `re.sub(r'\d+$', '', slot)`.
 - **Yellow/Red cards are intentionally NOT used** as criteria anywhere — they were removed by user request.
+- **Dash 4.x renamed component CSS classes** — `dcc.Dropdown`, `dcc.Slider`, and `dcc.Input` no longer use react-select/rc-slider classes. Style with `.dash-dropdown-*` (trigger / content / option / clear / search-icon), `.dash-slider-*` (rail / track / thumb / mark / mark-outside-selection / tooltip), and `.dash-input-*` (container / element / stepper). The legacy `.Select-*` and `.rc-slider-*` rules in `assets/style.css` match nothing under Dash 4 and exist only as compatibility shims.
+- **Optimizer score semantics**: the per-slot min-max normalisation lives inside `optimize_squad`; callers pass raw MCDM `score` (higher = better) and don't pre-normalise. Locked players get `score_norm = 1.0` in the result so they don't drag the total down.
 - **Current per-role criteria highlights** (full lists live in `criteria.py`):
   - GK: Saves, Clean Sheets, Save %, Goals Prevented, xGC, Influence
   - CB: Tackles, CBI, Clean Sheets, Recoveries, Defensive Contribution, xGC, Influence
