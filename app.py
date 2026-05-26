@@ -749,7 +749,7 @@ def build_player_detail(player_id, position_data):
         showlegend=True,
         legend=dict(font=dict(color="#a0a0aa", size=10), bgcolor="rgba(0,0,0,0)",
                     orientation="h", y=-0.12),
-        margin=dict(l=85, r=85, t=40, b=40),
+        margin=dict(l=115, r=115, t=40, b=40),
         height=290,
     )
 

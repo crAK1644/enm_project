@@ -1878,49 +1878,6 @@ input:-webkit-autofill:active {
     color: var(--text-primary) !important;
 }
 
-/* ── Header radios (method + weighting) — pill style ── */
-.header-stat .dash-radio-items,
-.header-stat > div[id$="-selector"] {
-    display: flex;
-    gap: 4px;
-}
-.header-stat label {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px !important;
-    border-radius: var(--radius-full) !important;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--surface-border);
-    cursor: pointer;
-    transition: all var(--transition);
-    font-size: 11px !important;
-    color: var(--text-secondary) !important;
-    margin: 0 !important;
-}
-.header-stat label:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary) !important;
-}
-.header-stat input[type="radio"],
-.header-stat input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 1.5px solid var(--text-tertiary);
-    background: transparent;
-    margin: 0 !important;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all var(--transition);
-}
-.header-stat input[type="radio"]:checked,
-.header-stat input[type="checkbox"]:checked {
-    border-color: var(--accent);
-    background: radial-gradient(circle, var(--accent) 0 40%, transparent 45% 100%);
-}
 
 /* ── Generic checkbox/radio styling (budget filter, etc.) ── */
 input[type="checkbox"],
