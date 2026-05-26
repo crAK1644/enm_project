@@ -1128,20 +1128,39 @@ def _build_optimizer_inputs(formation, method, weighting, assigned, fill_only):
 # Callbacks
 # ─────────────────────────────────────────────────────────────
 
-# Budget sync — slider only
+# Budget sync — slider and text input box synchronized
 @app.callback(
     [Output("store-budget", "data"),
+     Output("budget-slider", "value"),
+     Output("budget-input", "value"),
      Output("budget-value-display", "children")],
-    Input("budget-slider", "value"),
-    prevent_initial_call=True,
+    [Input("budget-slider", "value"),
+     Input("budget-input", "value")],
+    [State("store-budget", "data")],
 )
-def sync_budget(slider_val):
-    v = slider_val or 200
-    if v >= 1000:
-        label = f"€{v / 1000:.1f}bn"
+def sync_budget(slider_val, input_val, current_budget):
+    ctx = callback_context
+    triggered_id = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
+
+    if "budget-slider" in triggered_id:
+        val = slider_val
+    elif "budget-input" in triggered_id:
+        val = input_val
     else:
-        label = f"€{v}M"
-    return v, label
+        val = current_budget or 200
+
+    if val is None:
+        val = 200
+
+    # Force value bounds
+    val = max(10, min(2000, val))
+
+    if val >= 1000:
+        label = f"€{val / 1000:.1f}bn"
+    else:
+        label = f"€{val}M"
+
+    return val, val, val, label
 
 
 @app.callback(
