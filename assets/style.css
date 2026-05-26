@@ -1240,28 +1240,54 @@ input:-webkit-autofill:active {
     border-bottom-color: var(--bg-elevated) !important;
 }
 
-/* ── Formation dropdown (react-select v3+) ── */
+/* ── Dash Dropdown Bulletproof Dark Theme Overrides ── */
 .dash-dropdown,
-.dash-dropdown * {
-    color: var(--text-primary) !important;
-}
+.dash-dropdown *,
+.dash-dropdown div,
+.dash-dropdown span,
+.dash-dropdown input,
+.dash-dropdown label,
 .dash-dropdown .Select,
 .dash-dropdown .Select-control,
+.dash-dropdown .Select-value,
+.dash-dropdown .Select-value-label,
+.dash-dropdown .Select-placeholder,
 .dash-dropdown .Select-menu,
 .dash-dropdown .Select-menu-outer,
+.dash-dropdown .Select-option,
 .dash-dropdown .VirtualizedSelectOption,
-.dash-dropdown .Select-input > input {
+.dash-dropdown [class*="Select"] {
+    background-color: var(--bg-tertiary) !important;
     background: var(--bg-tertiary) !important;
     color: var(--text-primary) !important;
+    border-color: var(--surface-border-hover) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
 }
-.dash-dropdown .Select-arrow {
-    border-color: var(--text-secondary) transparent transparent !important;
-}
-.dash-dropdown.is-open .Select-arrow {
-    border-color: transparent transparent var(--text-secondary) !important;
-}
-.dash-dropdown .Select-input > input {
+
+/* Hover / Focus state for dropdown options */
+.dash-dropdown .Select-option.is-focused,
+.dash-dropdown .VirtualizedSelectFocusedOption,
+.dash-dropdown [class*="option"]:hover,
+.dash-dropdown [class*="option"]:focus,
+.dash-dropdown [class*="Focused"] {
+    background-color: var(--bg-hover) !important;
+    background: var(--bg-hover) !important;
     color: var(--text-primary) !important;
+}
+
+/* Fix option pills or selected option items inside the control container */
+.dash-dropdown .Select-value-label,
+.dash-dropdown [class*="value-label"],
+.dash-dropdown [class*="singleValue"] {
+    color: var(--text-primary) !important;
+}
+
+/* Fix dropdown arrow colour */
+.dash-dropdown .Select-arrow,
+.dash-dropdown [class*="indicatorSeparator"],
+.dash-dropdown [class*="dropdownIndicator"] {
+    border-top-color: var(--text-secondary) !important;
+    color: var(--text-secondary) !important;
 }
 
 /* ── Header radios (weighting) — pill style ── */
