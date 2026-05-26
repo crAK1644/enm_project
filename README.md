@@ -84,7 +84,7 @@ Criteria weights are determined objectively from the data, combining two complem
 ---
 
 ### 🚀 Vectorized Mathematical Engines (All $O(m \times n)$ Complexity)
-All six algorithms are fully vectorized using NumPy and Pandas for rapid runtime calculations:
+All eight algorithms are fully vectorized using NumPy and Pandas for rapid runtime calculations:
 - **PROMETHEE II:** Outranking method calculating Net Flows ($\Phi$).
 - **VIKOR:** Compromise ranking balancing utility and regret (inverted as $1.0 - Q$ for display uniformity).
 - **AHP (Analytic Hierarchy Process):** Derives composite alternatives' priority vectors.
@@ -92,13 +92,15 @@ All six algorithms are fully vectorized using NumPy and Pandas for rapid runtime
 - **SAW (Simple Additive Weighting):** Fast linear min-max aggregation.
 - **WP (Weighted Product):** Product scoring using exponential weights.
   * *Epsilon Limit:* Extends numerical stability using an offset matrix boundary of `epsilon = 1e-5` to completely avoid zero-base negative exponent division-by-zero crashes on cost attributes.
+- **WASPAS (Weighted Aggregative Sum Product Assessment):** Combines SAW and WP methods for enhanced accuracy.
+- **CODAS (Combinative Distance-based Assessment):** Computes distance metrics using both Euclidean and Taxicab spatial distances.
 
 ---
 
 ### 🗳️ Master Borda Count Consensus Aggregator
-Synthesizes the ordinal outputs from all 6 active algorithms into a single mathematically sound consensus team recommendation. Point distribution is computed as:
+Synthesizes the ordinal outputs from all 8 active algorithms into a single mathematically sound consensus team recommendation. Point distribution is computed as:
 $$\text{Points} = (\text{Alternatives}) - \text{Rank} + 1$$
-Consensus points are summed across the 6 models to produce a unified compromise squad.
+Consensus points are summed across the 8 models to produce a unified compromise squad.
 
 ## Position Criteria
 

@@ -49,8 +49,8 @@ app.index_string = '''
         {%css%}
         <style>
             /* Force method dropdown to render block to fix layout */
-            .header-stat > div#method-selector,
-            .header-stat > div[id$="-selector"] {
+            html body .header-stat > div#method-selector,
+            html body .header-stat > div[id$="-selector"] {
                 display: block !important;
             }
             
@@ -59,10 +59,15 @@ app.index_string = '''
             html body .dash-dropdown *,
             html body .Select,
             html body .Select-control,
+            html body .Select-menu,
             html body .Select-menu-outer,
             html body .Select-option,
             html body .VirtualizedSelectOption,
-            html body [class*="Select"] {
+            html body [class*="Select"],
+            html body [class*="menu"],
+            html body [class*="option"],
+            html body [class*="Option"],
+            html body [class*="Menu"] {
                 background-color: #2a2a2f !important;
                 background: #2a2a2f !important;
                 color: #ececf0 !important;
@@ -91,6 +96,134 @@ app.index_string = '''
             html body [class*="dropdownIndicator"] {
                 border-top-color: #a0a0aa !important;
                 color: #a0a0aa !important;
+            }
+            
+            /* Slider mark labels dark theme fixes */
+            html body .rc-slider-mark-text,
+            html body .rc-slider-mark-text-active,
+            html body .rc-slider-mark span,
+            html body .rc-slider-mark div,
+            html body .rc-slider span,
+            html body .rc-slider div,
+            html body .rc-slider-mark-text * {
+                color: #a0a0aa !important;
+                -webkit-text-fill-color: #a0a0aa !important;
+                font-weight: 600 !important;
+                font-size: 11px !important;
+                font-family: 'JetBrains Mono', monospace !important;
+                opacity: 1 !important;
+            }
+            
+            /* Slider rail */
+            html body .rc-slider input,
+            html body [class*="rc-slider"] input,
+            .rc-slider input {
+                display: none !important;
+            }
+            
+            /* Slider rail */
+            html body .rc-slider-rail,
+            html body [class*="rc-slider-rail"] {
+                background-color: rgba(255, 255, 255, 0.08) !important;
+                background: rgba(255, 255, 255, 0.08) !important;
+                height: 4px !important;
+            }
+            
+            /* Slider dots */
+            html body .rc-slider-dot,
+            html body [class*="rc-slider-dot"] {
+                border-color: rgba(255, 255, 255, 0.15) !important;
+                background-color: #2a2a2f !important;
+            }
+            
+            /* Numeric Input box and general inputs dark theme styling */
+            html body input:not([type="checkbox"]):not([type="radio"]),
+            html body select,
+            html body textarea {
+                background-color: #2a2a2f !important;
+                background: #2a2a2f !important;
+                color: #ececf0 !important;
+                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                border-radius: 8px !important;
+                outline: none !important;
+                box-shadow: none !important;
+                -webkit-text-fill-color: #ececf0 !important;
+            }
+            
+            html body #budget-input:focus,
+            html body input:focus {
+                border: 1px solid #d4845a !important; /* Force entire border property on focus! */
+                outline: none !important;
+                box-shadow: 0 0 0 2px rgba(212, 132, 90, 0.25) !important;
+            }
+            
+            /* Budget display boxes and percent fixes */
+            html body .budget-percent-text {
+                color: #a0a0aa !important;
+            }
+            
+            html body .pitch-container {
+                overflow: visible !important;
+            }
+            
+            /* Slider tooltip (rc-slider) dark theme overrides */
+            html body .rc-slider-tooltip-inner,
+            html body [class*="rc-slider-tooltip-inner"],
+            html body .rc-slider-tooltip,
+            html body [class*="rc-slider-tooltip"],
+            html body .rc-slider-tooltip *,
+            html body [class*="tooltip"] {
+                background-color: #2a2a2f !important;
+                background: #2a2a2f !important;
+                color: #ececf0 !important;
+                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                font-family: 'JetBrains Mono', monospace !important;
+                font-size: 11px !important;
+                opacity: 1 !important;
+                -webkit-text-fill-color: #ececf0 !important;
+            }
+            
+            html body .rc-slider-tooltip-arrow,
+            html body [class*="rc-slider-tooltip-arrow"] {
+                border-top-color: #2a2a2f !important;
+                border-bottom-color: #2a2a2f !important;
+            }
+            
+            /* Slider track and handle overrides to match our design system (accent orange/peach) */
+            html body .rc-slider-track,
+            html body [class*="rc-slider-track"] {
+                background-color: #d4845a !important;
+                background: #d4845a !important;
+                height: 4px !important;
+            }
+            
+            html body .rc-slider-handle,
+            html body [class*="rc-slider-handle"] {
+                border-color: #d4845a !important;
+                background-color: #222226 !important;
+                background: #222226 !important;
+                width: 16px !important;
+                height: 16px !important;
+                margin-top: -6px !important;
+            }
+            
+            /* Hide Dash dev-tools bar (Plotly Cloud / Errors / Callbacks / Server) */
+            ._dash-debug-menu,
+            ._dash-debug-menu *,
+            .dash-debug-menu,
+            .dash-debug-menu__outer,
+            .dash-debug-menu__content,
+            [class*="dash-debug"],
+            [class*="_dash-debug"] {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                height: 0 !important;
+                width: 0 !important;
+                overflow: hidden !important;
+                position: absolute !important;
+                z-index: -9999 !important;
             }
         </style>
     </head>
@@ -221,15 +354,16 @@ def build_pitch(formation_key, assigned_players, selected_position):
             className=" ".join(classes),
             style={"left": f"{info['x']}%", "top": f"{info['y']}%"},
             id={"type": "position-node", "index": slot},
+            key=f"{formation_key}-{slot}",
             n_clicks=0,
         )
         children.append(node)
 
-    return html.Div(children, className="pitch-container")
+    return html.Div(children, className="pitch-container", key=formation_key)
 
 
 METHOD_EXPLANATIONS = {
-    "promethee": {
+    "PROMETHEE II": {
         "name": "PROMETHEE II",
         "summary": "Pairwise outranking.",
         "body": ("Compares every player against every other across all criteria, "
@@ -237,7 +371,7 @@ METHOD_EXPLANATIONS = {
                  "Higher Φ means the player beats more rivals more often. "
                  "The most-used outranking method in football MCDM literature."),
     },
-    "vikor": {
+    "VIKOR": {
         "name": "VIKOR",
         "summary": "Compromise ranking.",
         "body": ("Finds the player closest to the ideal across all criteria while "
@@ -245,7 +379,15 @@ METHOD_EXPLANATIONS = {
                  "utility (S = sum of weighted gaps) against individual regret "
                  "(R = the single largest gap). Scores shown are 1 − Q so higher is better."),
     },
-    "topsis": {
+    "AHP": {
+        "name": "AHP",
+        "summary": "Analytic Hierarchy Process.",
+        "body": ("Structures the decision into a hierarchy of criteria and alternatives, "
+                 "then derives priority weights from pairwise comparison matrices. "
+                 "The final score is a weighted sum of normalised criterion values. "
+                 "Widely used in management science since Saaty (1980)."),
+    },
+    "TOPSIS": {
         "name": "TOPSIS",
         "summary": "Distance to ideal & anti-ideal.",
         "body": ("Each player gets a closeness coefficient = distance from the "
@@ -253,7 +395,23 @@ METHOD_EXPLANATIONS = {
                  "Range is 0–1; closer to 1 means closer to the best-possible player "
                  "across the chosen criteria. Most-cited MCDM method in football."),
     },
-    "waspas": {
+    "SAW": {
+        "name": "SAW",
+        "summary": "Simple Additive Weighting.",
+        "body": ("Normalises each criterion to 0–1, multiplies by its weight, and "
+                 "sums them up. The most intuitive MCDM method — a player's final "
+                 "score is simply the weighted average of their normalised stats. "
+                 "Fast and transparent, often used as a baseline."),
+    },
+    "WP": {
+        "name": "WP",
+        "summary": "Weighted Product Model.",
+        "body": ("Each criterion value is raised to the power of its weight, then "
+                 "all are multiplied together. Unlike SAW's additive approach, WP "
+                 "is multiplicative — a zero on any criterion collapses the score. "
+                 "Rewards well-rounded players and penalises extreme weaknesses."),
+    },
+    "WASPAS": {
         "name": "WASPAS",
         "summary": "Weighted sum + weighted product hybrid.",
         "body": ("Combines a weighted sum (WSM, additive) and a weighted product "
@@ -261,13 +419,21 @@ METHOD_EXPLANATIONS = {
                  "players who are weak on any single criterion, so WASPAS rewards "
                  "balanced profiles. Görcün (2021) paired CRITIC + WASPAS for goalkeeper selection."),
     },
-    "codas": {
+    "CODAS": {
         "name": "CODAS",
         "summary": "Combined distance from the anti-ideal.",
         "body": ("Each player is scored by Euclidean distance from the worst-case "
                  "(anti-ideal) plus a Taxicab tie-breaker when two players are nearly "
                  "tied. Higher score = farther from the worst-case. Keshavarz-Ghorabaee "
                  "(2016); gaining traction in sports MCDM since 2020."),
+    },
+    "Borda Consensus": {
+        "name": "Borda Consensus",
+        "summary": "Multi-method rank aggregation.",
+        "body": ("Runs AHP, TOPSIS, and SAW independently, assigns Borda points "
+                 "based on each method's ranking, then sums them into a consensus "
+                 "score. Players consistently ranked high across all three methods "
+                 "rise to the top — reducing single-method bias."),
     },
 }
 
@@ -312,7 +478,7 @@ def position_indicator_text(formation, slot):
     return f"{slot} · {pos}" if pos else slot
 
 
-def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remaining=9999):
+def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remaining=9999, selected_player=None):
     """Build ranking table with team, stability badge, search and budget filter."""
     if ranked_df is None or len(ranked_df) == 0:
         return html.Div([
@@ -362,6 +528,9 @@ def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remai
         # Team name
         team = str(row.get("team_tm", "")).strip()
 
+        is_selected = (selected_player is not None and str(selected_player) == pid)
+        tr_class = "player-tr selected-tr" if is_selected else "player-tr"
+
         rows.append(
             html.Tr([
                 html.Td(html.Span(str(r), className=f"rank-badge {rank_class(r)}")),
@@ -373,16 +542,16 @@ def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remai
                 html.Td(html.Div([
                     html.Div(className="score-bar-fill", style={"width": f"{max(5, norm):.0f}%"})
                 ], className="score-bar")),
-                html.Td([
+                html.Td(html.Div([
                     html.Span(f"{row['score']:.3f}",
                               style={"fontSize": "12px", "color": "#a0a0aa",
                                      "fontFamily": "'JetBrains Mono', monospace"}),
                     stability_el,
-                ], className="score-cell"),
+                ], className="score-cell-container"), className="score-cell"),
             ],
             id={"type": "player-row", "index": pid},
             n_clicks=0,
-            className="player-tr",
+            className=tr_class,
             )
         )
 
@@ -469,9 +638,11 @@ def build_player_detail(player_id, position_data):
         polar=dict(
             bgcolor="rgba(0,0,0,0)",
             radialaxis=dict(visible=True, range=[0, 1], showticklabels=False,
-                            gridcolor="rgba(255,255,255,0.08)"),
+                            gridcolor="rgba(255,255,255,0.08)",
+                            showline=False, linecolor="rgba(0,0,0,0)"),
             angularaxis=dict(gridcolor="rgba(255,255,255,0.08)",
                              linecolor="rgba(255,255,255,0.08)",
+                             showline=False,
                              tickfont=dict(color="#a0a0aa", size=10)),
         ),
         paper_bgcolor="rgba(0,0,0,0)",
@@ -479,7 +650,7 @@ def build_player_detail(player_id, position_data):
         showlegend=True,
         legend=dict(font=dict(color="#a0a0aa", size=10), bgcolor="rgba(0,0,0,0)",
                     orientation="h", y=-0.12),
-        margin=dict(l=30, r=30, t=10, b=30),
+        margin=dict(l=50, r=50, t=10, b=30),
         height=260,
     )
 
@@ -536,29 +707,6 @@ app.layout = html.Div([
 
         html.Div([
             html.Div([
-                html.Div("Method", className="header-stat-label"),
-                dcc.Dropdown(
-                    id="method-selector",
-                    options=[
-                        {"label": "PROMETHEE II", "value": "PROMETHEE II"},
-                        {"label": "VIKOR", "value": "VIKOR"},
-                        {"label": "AHP", "value": "AHP"},
-                        {"label": "TOPSIS", "value": "TOPSIS"},
-                        {"label": "SAW", "value": "SAW"},
-                        {"label": "WP", "value": "WP"},
-                        {"label": "WASPAS", "value": "WASPAS"},
-                        {"label": "CODAS", "value": "CODAS"},
-                        {"label": "Borda Consensus", "value": "Borda Consensus"},
-                    ],
-                    value="PROMETHEE II",
-                    clearable=False,
-                    searchable=False,
-                    className="dash-dropdown",
-                    style={"width": "180px", "fontSize": "13px"},
-                ),
-            ], className="header-stat"),
-
-            html.Div([
                 html.Div("Weighting", className="header-stat-label"),
                 dcc.RadioItems(
                     id="weighting-selector",
@@ -568,8 +716,6 @@ app.layout = html.Div([
                     ],
                     value="critic",
                     inline=True,
-                    style={"fontSize": "12px", "color": "#ffffff"},
-                    labelStyle={"color": "#ffffff", "marginRight": "10px"},
                 ),
             ], className="header-stat"),
 
@@ -588,31 +734,49 @@ app.layout = html.Div([
         ], className="header-controls"),
     ], className="header-bar"),
 
+    # ── Method Selector (pill row) ──
+    html.Div([
+        dcc.RadioItems(
+            id="method-selector",
+            options=[
+                {"label": "PROMETHEE II", "value": "PROMETHEE II"},
+                {"label": "VIKOR", "value": "VIKOR"},
+                {"label": "AHP", "value": "AHP"},
+                {"label": "TOPSIS", "value": "TOPSIS"},
+                {"label": "SAW", "value": "SAW"},
+                {"label": "WP", "value": "WP"},
+                {"label": "WASPAS", "value": "WASPAS"},
+                {"label": "CODAS", "value": "CODAS"},
+                {"label": "Borda Consensus", "value": "Borda Consensus"},
+            ],
+            value="PROMETHEE II",
+            inline=True,
+            className="method-pill-row",
+        ),
+    ], className="method-row-wrapper"),
+
     # ── Budget Bar ──
     html.Div([
         html.Div([
             html.Div([
                 html.Div("Budget", className="panel-title"),
-                html.Div([
-                    html.Span("€", className="budget-currency"),
-                    dcc.Input(
-                        id="budget-input",
-                        type="number",
-                        value=200,
-                        min=10, max=2000, step=10,
-                        style={"width": "90px", "textAlign": "center"},
-                    ),
-                    html.Span("M", className="budget-currency"),
-                ], className="budget-input-group"),
+                html.Div("€200M", id="budget-value-display",
+                         className="budget-value-display"),
             ], className="panel-header"),
 
             html.Div([
                 dcc.Slider(
                     id="budget-slider",
                     min=10, max=2000, step=10, value=200,
-                    marks={50: "€50m", 200: "€200m", 500: "€500m",
-                           1000: "€1bn", 2000: "€2bn"},
+                    marks={
+                        50: {"label": "50m", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                        200: {"label": "200m", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                        500: {"label": "500m", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                        1000: {"label": "1bn", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                        2000: {"label": "2bn", "style": {"color": "#a0a0aa", "fontFamily": "'JetBrains Mono', monospace", "fontWeight": "600", "fontSize": "11px", "opacity": "1"}},
+                    },
                     tooltip={"placement": "bottom", "always_visible": False},
+                    updatemode="drag",
                 ),
             ], className="budget-slider-section"),
 
@@ -674,7 +838,7 @@ app.layout = html.Div([
                     dcc.Input(
                         id="search-input",
                         type="text",
-                        placeholder="Search player…",
+                        placeholder="Search player",
                         debounce=True,
                         className="search-input",
                     ),
@@ -710,7 +874,8 @@ app.layout = html.Div([
             html.Div([
                 html.Div("Criteria Weights", className="panel-title"),
                 html.Button("Reset to CRITIC", id="reset-weights-btn",
-                            className="btn-secondary", n_clicks=0),
+                            className="btn-secondary", n_clicks=0,
+                            disabled=True),
             ], className="panel-header"),
             html.Div(id="weights-container", className="panel-body"),
         ], className="panel weight-panel"),
@@ -722,23 +887,20 @@ app.layout = html.Div([
 # Callbacks
 # ─────────────────────────────────────────────────────────────
 
-# Budget sync
+# Budget sync — slider only
 @app.callback(
     [Output("store-budget", "data"),
-     Output("budget-input", "value"),
-     Output("budget-slider", "value")],
-    [Input("budget-input", "value"),
-     Input("budget-slider", "value")],
-    [State("store-budget", "data")],
+     Output("budget-value-display", "children")],
+    Input("budget-slider", "value"),
     prevent_initial_call=True,
 )
-def sync_budget(input_val, slider_val, current):
-    ctx = callback_context
-    if not ctx.triggered:
-        return current, current, current
-    trigger = ctx.triggered[0]["prop_id"]
-    v = (input_val or 200) if "budget-input" in trigger else (slider_val or 200)
-    return v, v, v
+def sync_budget(slider_val):
+    v = slider_val or 200
+    if v >= 1000:
+        label = f"€{v / 1000:.1f}bn"
+    else:
+        label = f"€{v}M"
+    return v, label
 
 
 # Render pitch
@@ -788,7 +950,9 @@ def select_position(n_clicks, formation, current):
     [Output("ranking-container", "children"),
      Output("weights-container", "children"),
      Output("store-rankings-cache", "data"),
-     Output("store-position-data", "data")],
+     Output("store-position-data", "data"),
+     Output("reset-weights-btn", "children"),
+     Output("reset-weights-btn", "disabled")],
     [Input("store-selected-position", "data"),
      Input("method-selector", "value"),
      Input("weighting-selector", "value"),
@@ -796,13 +960,14 @@ def select_position(n_clicks, formation, current):
      Input("reset-weights-btn", "n_clicks"),
      Input("store-assigned-players", "data"),
      Input("search-input", "value"),
-     Input("budget-filter", "value")],
+     Input("budget-filter", "value"),
+     Input("store-selected-player", "data")],
     [State("formation-dropdown", "value"),
      State("store-budget", "data")],
 )
 def update_rankings(selected_pos, method, weighting, slider_values,
                     reset_clicks, assigned, search, budget_filter_val,
-                    formation, budget_store):
+                    selected_player, formation, budget_store):
     ctx = callback_context
     triggered_id = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
     assigned = assigned or {}
@@ -819,8 +984,11 @@ def update_rankings(selected_pos, method, weighting, slider_values,
                  className="empty-state-text"),
     ], className="empty-state")
 
+    label = "Entropy" if weighting == "entropy" else "CRITIC"
+    btn_text = f"Reset to {label}"
+
     if not selected_pos:
-        return empty_rank, empty_weight, {}, {}
+        return empty_rank, empty_weight, {}, {}, btn_text, True
 
     # Resolve slot → specific role + eligible pool. Fall back to broad position
     # if the slot is somehow unmapped (defensive — every slot should be in SLOT_TO_ROLE).
@@ -837,7 +1005,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         players = get_position_players(PLAYER_DB, broad)
 
     if not criteria_config:
-        return html.Div("No criteria for this position."), html.Div(), {}, {}
+        return html.Div("No criteria for this position."), html.Div(), {}, {}, btn_text, True
 
     # Filter out players assigned to other positions
     current_id_key = f"{selected_pos}_id"
@@ -847,7 +1015,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         players = players[~players["id"].astype(str).isin(assigned_ids)]
 
     if len(players) < 2:
-        return html.Div("Not enough players."), html.Div(), {}, {}
+        return html.Div("Not enough players."), html.Div(), {}, {}, btn_text, True
 
     criteria_order = list(criteria_config.keys())
     active = criteria_order.copy()
@@ -897,7 +1065,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
             custom_weights=custom_weights, weighting=weighting,
         )
     except Exception as e:
-        return html.Div(f"Error: {e}"), html.Div(), {}, {}
+        return html.Div(f"Error: {e}"), html.Div(), {}, {}, btn_text, True
 
     # Compute alternate method ranks for stability badge
     alt_map = {
@@ -934,6 +1102,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         search=search or "",
         budget_filter=do_budget_filter,
         remaining=remaining,
+        selected_player=selected_player,
     )
 
     # Build position-data store for radar/breakdown
@@ -966,7 +1135,14 @@ def update_rankings(selected_pos, method, weighting, slider_values,
              for _, row in ranked_df.iterrows()}
 
     weights = build_weights(criteria_config, objective_w, applied_w, active, weighting=weighting)
-    return table, weights, cache, pos_data
+
+    is_disabled = True
+    if "weight-slider" in triggered_id:
+        is_disabled = False
+    elif use_custom and custom_weights is not None:
+        is_disabled = False
+
+    return table, weights, cache, pos_data, btn_text, is_disabled
 
 
 # Select player for detail panel (click again to toggle off)
@@ -990,15 +1166,17 @@ def select_player(row_clicks, selected_pos, current_player):
     if "player-row" not in triggered_id:
         return current_player
 
-    # Table refresh can reset row n_clicks to zero; keep the selection open.
-    if not row_clicks or all((n or 0) == 0 for n in row_clicks):
+    try:
+        triggered_info = json.loads(triggered_id.split(".")[0])
+        pid = str(triggered_info["index"])
+        clicks = ctx.triggered[0]["value"]
+        if clicks is None or clicks == 0:
+            return current_player
+    except (json.JSONDecodeError, KeyError, IndexError, TypeError):
         return current_player
 
-    try:
-        pid = json.loads(triggered_id.split(".")[0])["index"]
-    except (json.JSONDecodeError, KeyError):
+    if current_player is not None and str(current_player) == pid:
         return None
-
     return pid
 
 
@@ -1011,6 +1189,8 @@ def select_player(row_clicks, selected_pos, current_player):
 )
 def update_method_explanation(method, weighting, selected_pos):
     return build_method_explanation(method, weighting)
+
+
 
 
 # Render player detail panel
@@ -1156,4 +1336,4 @@ if __name__ == "__main__":
     print("  ⚽ Transfer Window Manager")
     print("=" * 50)
     print("\n  → http://localhost:8050\n")
-    app.run(debug=True, host="0.0.0.0", port=8050)
+    app.run(debug=False, host="0.0.0.0", port=8050)

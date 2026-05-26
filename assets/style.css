@@ -150,13 +150,60 @@ body {
 .budget-warn { color: var(--warning) !important; }
 .budget-over { color: var(--danger) !important; }
 
-/* ── Method Pills ── */
-.method-pills {
-    display: flex;
-    gap: 2px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
-    padding: 2px;
+/* ── Method Pill Row ── */
+.method-row-wrapper {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 10px 28px 0 28px;
+}
+
+.method-pill-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+.method-pill-row label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px !important;
+    border-radius: var(--radius-full) !important;
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--surface-border) !important;
+    cursor: pointer;
+    color: var(--text-secondary) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    font-family: 'Inter', sans-serif !important;
+    margin: 0 !important;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.method-pill-row label:hover {
+    background: var(--bg-hover) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--surface-border-hover) !important;
+}
+
+.method-pill-row input[type="radio"] {
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.method-pill-row input[type="radio"]:checked + label,
+.method-pill-row label:has(input[type="radio"]:checked) {
+    background: var(--accent-muted) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+    font-weight: 600 !important;
 }
 
 /* ── Main Layout ── */
@@ -211,7 +258,7 @@ body {
     border-radius: var(--radius-md);
     border: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Pitch stripes */
@@ -365,11 +412,23 @@ body {
     background: var(--bg-hover);
 }
 
+.ranking-table tbody tr.selected-tr {
+    background: rgba(212, 132, 90, 0.14) !important;
+}
+
+.ranking-table tbody tr.selected-tr:hover {
+    background: rgba(212, 132, 90, 0.20) !important;
+}
+
 .ranking-table tbody td {
     padding: 10px 12px;
     font-size: 13px;
     border-bottom: 1px solid var(--surface-border);
     vertical-align: middle;
+}
+
+.ranking-table tbody tr.selected-tr td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--accent) !important;
 }
 
 .rank-badge {
@@ -394,7 +453,11 @@ body {
     color: var(--silver);
     border: 1px solid var(--silver);
 }
-.rank-3 { background: var(--bronze); color: #fff; }
+.rank-3 {
+    background: rgba(217, 119, 6, 0.18);
+    color: var(--bronze);
+    border: 1px solid var(--bronze);
+}
 .rank-other { background: var(--bg-elevated); color: var(--text-secondary); }
 
 .score-bar {
@@ -489,6 +552,14 @@ body {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-tertiary);
+}
+
+.budget-value-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent-text);
+    letter-spacing: 0.3px;
 }
 
 .budget-slider-container {
@@ -620,6 +691,13 @@ body {
 
 .btn-remove:hover {
     background: var(--danger-muted);
+}
+
+.btn-secondary:disabled,
+.btn-secondary[disabled] {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* ── Dash Overrides ── */
@@ -918,10 +996,13 @@ input[type="text"]:focus {
 }
 
 .score-cell {
-    display: flex;
+    /* Kept as default table-cell to prevent browser display engine misalignment */
+}
+
+.score-cell-container {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 12px;
 }
 
 /* ── Stability badge ── */
@@ -1349,28 +1430,20 @@ input[type="radio"] {
     transition: all var(--transition);
     padding: 0 !important;
 }
-input[type="radio"] {
-    border-radius: 50%;
-}
-input[type="checkbox"] {
-    border-radius: 3px;
-}
-input[type="radio"]:checked {
-    border-color: var(--accent);
+/* ── Checkbox / Radio checked states — nuclear specificity ── */
+html body input[type="radio"]:checked {
+    border-color: var(--accent) !important;
     background: radial-gradient(circle, var(--accent) 0 40%, var(--bg-tertiary) 45% 100%) !important;
 }
-input[type="checkbox"]:checked {
-    border-color: var(--accent);
-    background: var(--accent) !important;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 8.5L7 12L13 4'/></svg>") !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    background-size: 12px 12px !important;
+html body input[type="checkbox"]:checked {
+    border-color: var(--accent) !important;
+    background-color: var(--accent) !important;
+    background: var(--accent) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 8.5L7 12L13 4'/></svg>") no-repeat center / 12px 12px !important;
 }
-input[type="checkbox"]:focus,
-input[type="radio"]:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--accent-muted);
+html body input[type="checkbox"]:focus,
+html body input[type="radio"]:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px var(--accent-muted) !important;
 }
 
 .budget-filter-check label {
@@ -1385,3 +1458,106 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
     filter: invert(0.7);
 }
+
+/* ══════════════════════════════════════════════════════════
+   Nuclear-level dark theme overrides
+   (addresses Dash dev-tools, Plotly bars, and rc-slider tooltips)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Hide Dash Dev Tools bar ── */
+._dash-debug-menu,
+._dash-debug-menu *,
+.dash-debug-menu,
+.dash-debug-menu__outer,
+.dash-debug-menu__content,
+.dash-debug-alert-label,
+.dash-debug-alert,
+[class*="dash-debug"],
+[class*="_dash-debug"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+}
+
+/* ── Hide Plotly Cloud / Errors / Callbacks toolbar ── */
+.modebar-container,
+.modebar,
+.modebar-group,
+.js-plotly-plot .plotly .modebar,
+[class*="modebar"] {
+    display: none !important;
+}
+
+/* ── rc-slider tooltip nuclear override ── */
+.rc-slider-tooltip,
+.rc-slider-tooltip *,
+.rc-slider-tooltip-inner,
+.rc-slider-tooltip-content,
+div[class*="rc-slider-tooltip"],
+div[class*="rc-slider-tooltip"] * {
+    background-color: var(--bg-elevated) !important;
+    background: var(--bg-elevated) !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    border-color: var(--surface-border-hover) !important;
+    border-radius: 6px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    box-shadow: var(--shadow-md) !important;
+    opacity: 1 !important;
+}
+
+.rc-slider-tooltip-placement-bottom .rc-slider-tooltip-arrow,
+.rc-slider-tooltip-placement-top .rc-slider-tooltip-arrow,
+.rc-slider-tooltip-arrow {
+    border-top-color: var(--bg-elevated) !important;
+    border-bottom-color: var(--bg-elevated) !important;
+}
+
+/* ── Budget slider marks — maximum visibility ── */
+.rc-slider-mark-text,
+.rc-slider-mark-text-active,
+.rc-slider-mark span,
+.rc-slider-mark div {
+    color: var(--text-secondary) !important;
+    font-size: 10px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-weight: 600 !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: var(--text-secondary) !important;
+}
+
+/* ── Budget percent text ── */
+.budget-percent-text {
+    color: var(--text-secondary) !important;
+    font-weight: 600 !important;
+}
+
+/* ── Fix number input native tooltip (browser autocomplete) ── */
+input::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+}
+input[type="number"]::placeholder,
+input[type="text"]::placeholder {
+    color: var(--text-placeholder) !important;
+    -webkit-text-fill-color: var(--text-placeholder) !important;
+}
+
+/* ── Hide rc-slider native hidden inputs ── */
+html body .rc-slider input,
+html body [class*="rc-slider"] input,
+.rc-slider input {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
+
