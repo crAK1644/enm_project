@@ -573,7 +573,7 @@ def build_weights(criteria_config, objective_w, applied_w, active_criteria, weig
 
         items.append(html.Div([
             html.Div([
-                html.Div(info["label"], className="weight-name", style={"flex": "1"}),
+                html.Div(info["label"].replace("<br>", " "), className="weight-name", style={"flex": "1"}),
                 html.Div(f"{aw:.3f}", className="weight-value",
                          id={"type": "weight-display", "index": name}),
             ], className="weight-label"),
@@ -637,8 +637,9 @@ def build_player_detail(player_id, position_data):
     fig.update_layout(
         polar=dict(
             bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, 1], showticklabels=False,
+            radialaxis=dict(visible=True, range=[0, 1.02], showticklabels=False,
                             gridcolor="rgba(255,255,255,0.08)",
+                            tickvals=[0.2, 0.4, 0.6, 0.8, 1.0],
                             showline=False, linecolor="rgba(0,0,0,0)"),
             angularaxis=dict(gridcolor="rgba(255,255,255,0.08)",
                              linecolor="rgba(255,255,255,0.08)",
@@ -650,8 +651,8 @@ def build_player_detail(player_id, position_data):
         showlegend=True,
         legend=dict(font=dict(color="#a0a0aa", size=10), bgcolor="rgba(0,0,0,0)",
                     orientation="h", y=-0.12),
-        margin=dict(l=50, r=50, t=10, b=30),
-        height=260,
+        margin=dict(l=85, r=85, t=40, b=40),
+        height=290,
     )
 
     # Criteria breakdown bars
@@ -661,7 +662,7 @@ def build_player_detail(player_id, position_data):
         av = avg_scores.get(k, 0)
         lbl = labels[k]
         bar_items.append(html.Div([
-            html.Div(lbl, className="breakdown-label"),
+            html.Div(lbl.replace("<br>", " "), className="breakdown-label"),
             html.Div([
                 html.Div(style={"width": f"{pv*100:.0f}%"}, className="breakdown-bar-fill"),
                 html.Div(style={"left": f"{av*100:.0f}%"},  className="breakdown-bar-avg"),
@@ -1145,39 +1146,7 @@ def update_rankings(selected_pos, method, weighting, slider_values,
     return table, weights, cache, pos_data, btn_text, is_disabled
 
 
-# Select player for detail panel (click again to toggle off)
-@app.callback(
-    Output("store-selected-player", "data"),
-    [Input({"type": "player-row", "index": ALL}, "n_clicks"),
-     Input("store-selected-position", "data")],
-    [State("store-selected-player", "data")],
-    prevent_initial_call=True,
-)
-def select_player(row_clicks, selected_pos, current_player):
-    ctx = callback_context
-    if not ctx.triggered:
-        return None
-    triggered_id = ctx.triggered[0]["prop_id"]
-
-    # Position changed → clear detail panel
-    if "store-selected-position" in triggered_id:
-        return None
-
-    if "player-row" not in triggered_id:
-        return current_player
-
-    try:
-        triggered_info = json.loads(triggered_id.split(".")[0])
-        pid = str(triggered_info["index"])
-        clicks = ctx.triggered[0]["value"]
-        if clicks is None or clicks == 0:
-            return current_player
-    except (json.JSONDecodeError, KeyError, IndexError, TypeError):
-        return current_player
-
-    if current_player is not None and str(current_player) == pid:
-        return None
-    return pid
+# (select_player callback merged into handle_player_assignment_and_selection to avoid race conditions)
 
 
 # Method + weighting explanation card
@@ -1220,9 +1189,10 @@ def update_remove_btn(selected_pos, assigned):
     return {"display": "none"}, "✕ Remove"
 
 
-# Assign / remove / clear players + update budget display
+# Assign / remove / clear players + update budget display + select player details (combined to prevent race conditions)
 @app.callback(
     [Output("store-assigned-players", "data"),
+     Output("store-selected-player", "data"),
      Output("spent-display", "children"),
      Output("remaining-display", "children"),
      Output("remaining-display", "className"),
@@ -1235,41 +1205,56 @@ def update_remove_btn(selected_pos, assigned):
      Input("clear-squad-btn", "n_clicks"),
      Input("remove-player-btn", "n_clicks"),
      Input("store-budget", "data"),
-     Input("formation-dropdown", "value")],
+     Input("formation-dropdown", "value"),
+     Input("store-selected-position", "data")],
     [State("store-assigned-players", "data"),
-     State("store-selected-position", "data"),
+     State("store-selected-player", "data"),
      State("store-rankings-cache", "data")],
 )
-def assign_player(player_clicks, clear_clicks, remove_clicks, budget, formation,
-                  assigned, selected_pos, cache):
+def handle_player_assignment_and_selection(player_clicks, clear_clicks, remove_clicks, budget, formation, selected_pos,
+                                          assigned, current_player, cache):
     ctx = callback_context
     assigned = assigned or {}
     budget = budget or 200
     triggered_id = ctx.triggered[0]["prop_id"] if ctx.triggered else ""
 
+    new_selected_player = current_player
+
     if "formation-dropdown" in triggered_id:
         assigned = {}
+        new_selected_player = None
 
     elif "clear-squad-btn" in triggered_id:
         assigned = {}
+        new_selected_player = None
+
+    elif "store-selected-position" in triggered_id:
+        # Clear selected player details when moving to another position node
+        new_selected_player = None
 
     elif "remove-player-btn" in triggered_id and selected_pos:
         assigned = {k: v for k, v in assigned.items()
                     if not k.startswith(selected_pos)}
+        new_selected_player = None
 
     elif "player-row" in triggered_id and selected_pos and cache:
-        # Table re-render re-creates player-row components with n_clicks=0,
-        # which Dash treats as an input change. Ignore those phantom triggers.
+        # Ignore phantom initial load triggers where n_clicks is 0 for all rows
         if not player_clicks or all((n or 0) == 0 for n in player_clicks):
             pass
         else:
             try:
-                pid = json.loads(triggered_id.split(".")[0])["index"]
+                pid = str(json.loads(triggered_id.split(".")[0])["index"])
                 info = cache.get(pid, {})
                 if info:
                     assigned[selected_pos]            = info.get("name", "?")
                     assigned[f"{selected_pos}_value"] = info.get("value", 0)
                     assigned[f"{selected_pos}_id"]    = pid
+                    
+                    # Direct click toggles details or selects player instantly:
+                    if current_player is not None and str(current_player) == pid:
+                        new_selected_player = None
+                    else:
+                        new_selected_player = pid
             except (json.JSONDecodeError, KeyError):
                 pass
 
@@ -1292,6 +1277,7 @@ def assign_player(player_clicks, clear_clicks, remove_clicks, budget, formation,
 
     return (
         assigned,
+        new_selected_player,
         f"€{cost:.1f}m",
         f"€{remaining:.1f}m",
         cls,
@@ -1301,6 +1287,7 @@ def assign_player(player_clicks, clear_clicks, remove_clicks, budget, formation,
         bar_cls,
         f"{pct:.0f}%",
     )
+
 
 
 # Export squad to CSV
