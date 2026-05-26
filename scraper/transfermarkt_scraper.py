@@ -64,8 +64,32 @@ def parse_market_value(value_str):
         return 0.0
 
 
+def extract_position_from_cell(cell):
+    """Extract the position text (e.g. 'Centre-Forward') from a player cell.
+
+    Transfermarkt nests an `inline-table` inside `td.posrela`; the second row
+    of that table holds the position as plain text. Fall back to scanning
+    any non-link cell text if the structure changes.
+    """
+    if not cell:
+        return ""
+    inline = cell.find("table", class_="inline-table")
+    if inline:
+        rows = inline.find_all("tr")
+        if len(rows) >= 2:
+            txt = rows[1].get_text(strip=True)
+            if txt:
+                return txt
+    # Fallback: take the cell's text minus any link text.
+    link = cell.find("a", href=re.compile(r"/profil/spieler/"))
+    full = cell.get_text(" ", strip=True)
+    if link:
+        full = full.replace(link.get_text(strip=True), "", 1).strip()
+    return full
+
+
 def scrape_team(team_name, slug, team_id, session):
-    """Scrape a single team's squad page for player names and market values."""
+    """Scrape a single team's squad page: player name, main position, market value."""
     url = f"https://www.transfermarkt.com/{slug}/kader/verein/{team_id}/saison_id/2025"
     print(f"  Scraping {team_name}... ({url})")
 
@@ -79,42 +103,33 @@ def scrape_team(team_name, slug, team_id, session):
     soup = BeautifulSoup(resp.text, "html.parser")
     players = []
 
-    # Find player rows in the squad table
-    # Transfermarkt uses table rows with player info
-    player_links = soup.select("td.hauptlink a[href*='/profil/spieler/']")
-    value_links = soup.select("td.rechts.hauptlink a[href*='/marktwertverlauf/']")
+    # Walk the squad table row by row so name, position, and value stay aligned.
+    # Each player row contains a td.posrela (with nested inline-table holding
+    # the player name + position) and a td.rechts.hauptlink (market value).
+    for row in soup.find_all("tr"):
+        name_cell = row.find("td", class_="posrela")
+        if not name_cell:
+            continue
+        name_link = name_cell.find("a", href=re.compile(r"/profil/spieler/\d+"))
+        if not name_link or not name_link.text.strip():
+            continue
 
-    # Alternative: parse all links with profil/spieler pattern
-    if not player_links:
-        # Fallback: find all player profile links
-        player_links = soup.find_all("a", href=re.compile(r"/profil/spieler/\d+"))
+        player_name = name_link.text.strip()
+        position = extract_position_from_cell(name_cell)
 
-    # Try to pair player names with market values
-    # The page structure alternates player name links and value links
-    all_links = soup.find_all("a", href=True)
+        value_link = row.find("a", href=re.compile(r"/marktwertverlauf/spieler/"))
+        value_text = value_link.text.strip() if value_link else ""
+        if not value_text.startswith("€"):
+            # No market value for this player — skip rather than store zero.
+            continue
 
-    current_player = None
-    for link in all_links:
-        href = link.get("href", "")
-
-        # Player name link
-        if "/profil/spieler/" in href and link.text.strip():
-            name = link.text.strip()
-            if len(name) > 1 and not name.startswith("€"):
-                current_player = name
-
-        # Market value link (follows player name)
-        elif "/marktwertverlauf/spieler/" in href and link.text.strip().startswith("€"):
-            value_text = link.text.strip()
-            if current_player:
-                value_m = parse_market_value(value_text)
-                players.append({
-                    "player_name": current_player,
-                    "market_value_eur_m": value_m,
-                    "market_value_str": value_text,
-                    "team": team_name,
-                })
-                current_player = None
+        players.append({
+            "player_name": player_name,
+            "main_position": position,
+            "market_value_eur_m": parse_market_value(value_text),
+            "market_value_str": value_text,
+            "team": team_name,
+        })
 
     print(f"    Found {len(players)} players")
     return players
@@ -207,6 +222,7 @@ def run_scraper(project_dir):
                 "market_value_str": p["market_value_str"],
                 "team_tm": p["team"],
                 "position": match["position"],
+                "main_position": p.get("main_position", ""),
                 "match_score": round(score, 3),
             })
         else:
@@ -221,7 +237,8 @@ def run_scraper(project_dir):
     with open(output_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=[
             "player_id", "player_name_tm", "player_name_csv", "web_name",
-            "market_value_eur_m", "market_value_str", "team_tm", "position", "match_score"
+            "market_value_eur_m", "market_value_str", "team_tm", "position",
+            "main_position", "match_score"
         ])
         writer.writeheader()
         writer.writerows(matched)
@@ -230,6 +247,20 @@ def run_scraper(project_dir):
     return matched
 
 
+def dry_run_one_team():
+    """Scrape a single team (Arsenal) and print results for sanity-checking."""
+    session = requests.Session()
+    name = "Arsenal FC"
+    slug, team_id = TEAMS[name]
+    players = scrape_team(name, slug, team_id, session)
+    print(f"\n--- Dry run: {name} ---")
+    for p in players:
+        print(f"  {p['player_name']:30s} | {p['main_position']:25s} | {p['market_value_str']}")
+
+
 if __name__ == "__main__":
-    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    run_scraper(project_dir)
+    if "--dry-run" in sys.argv:
+        dry_run_one_team()
+    else:
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        run_scraper(project_dir)

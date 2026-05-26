@@ -20,8 +20,8 @@ import plotly.graph_objects as go
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, PROJECT_DIR)
 
-from mcdm.data_processor import build_player_database, get_position_players
-from mcdm.criteria import POSITION_CRITERIA, FORMATIONS
+from mcdm.data_processor import build_player_database, get_position_players, get_role_players
+from mcdm.criteria import POSITION_CRITERIA, ROLE_CRITERIA, SLOT_TO_ROLE, FORMATIONS
 from mcdm.engine import rank_players
 
 # ─────────────────────────────────────────────────────────────
@@ -162,10 +162,86 @@ def build_pitch(formation_key, assigned_players, selected_position):
     return html.Div(children, className="pitch-container")
 
 
+METHOD_EXPLANATIONS = {
+    "promethee": {
+        "name": "PROMETHEE II",
+        "summary": "Pairwise outranking.",
+        "body": ("Compares every player against every other across all criteria, "
+                 "then sums their 'wins minus losses' into a net outranking flow Φ. "
+                 "Higher Φ means the player beats more rivals more often. "
+                 "The most-used outranking method in football MCDM literature."),
+    },
+    "vikor": {
+        "name": "VIKOR",
+        "summary": "Compromise ranking.",
+        "body": ("Finds the player closest to the ideal across all criteria while "
+                 "keeping their worst-criterion shortfall small. Balances group "
+                 "utility (S = sum of weighted gaps) against individual regret "
+                 "(R = the single largest gap). Scores shown are 1 − Q so higher is better."),
+    },
+    "topsis": {
+        "name": "TOPSIS",
+        "summary": "Distance to ideal & anti-ideal.",
+        "body": ("Each player gets a closeness coefficient = distance from the "
+                 "anti-ideal ÷ (distance from ideal + distance from anti-ideal). "
+                 "Range is 0–1; closer to 1 means closer to the best-possible player "
+                 "across the chosen criteria. Most-cited MCDM method in football."),
+    },
+    "waspas": {
+        "name": "WASPAS",
+        "summary": "Weighted sum + weighted product hybrid.",
+        "body": ("Combines a weighted sum (WSM, additive) and a weighted product "
+                 "(WPM, multiplicative) at λ = 0.5. The product half penalizes "
+                 "players who are weak on any single criterion, so WASPAS rewards "
+                 "balanced profiles. Görcün (2021) paired CRITIC + WASPAS for goalkeeper selection."),
+    },
+    "codas": {
+        "name": "CODAS",
+        "summary": "Combined distance from the anti-ideal.",
+        "body": ("Each player is scored by Euclidean distance from the worst-case "
+                 "(anti-ideal) plus a Taxicab tie-breaker when two players are nearly "
+                 "tied. Higher score = farther from the worst-case. Keshavarz-Ghorabaee "
+                 "(2016); gaining traction in sports MCDM since 2020."),
+    },
+}
+
+WEIGHTING_EXPLANATIONS = {
+    "critic": ("Weights come from data variability (std dev) × disagreement with "
+               "other criteria (1 − correlation). Criteria that discriminate well "
+               "and aren't redundant get higher weight."),
+    "entropy": ("Weights from Shannon entropy of each criterion's normalized "
+                "distribution. The more spread out a criterion's values are across "
+                "players, the more information it carries — and the higher its weight."),
+}
+
+
+def build_method_explanation(method, weighting):
+    """Plain-English description of the active method + weighting scheme."""
+    info = METHOD_EXPLANATIONS.get(method)
+    if not info:
+        return None
+    weight_label = "Entropy" if weighting == "entropy" else "CRITIC"
+    weight_body = WEIGHTING_EXPLANATIONS.get(weighting, "")
+    return html.Div([
+        html.Div([
+            html.Span(info["name"], className="method-explainer-name"),
+            html.Span(info["summary"], className="method-explainer-summary"),
+        ], className="method-explainer-header"),
+        html.Div(info["body"], className="method-explainer-body"),
+        html.Div([
+            html.Span(f"Weights: {weight_label}", className="method-explainer-weight-label"),
+            html.Span(weight_body, className="method-explainer-weight-body"),
+        ], className="method-explainer-weight"),
+    ])
+
+
 def position_indicator_text(formation, slot):
     """Build indicator text for the currently selected slot."""
     if not slot:
         return "Click a position on the pitch"
+    role_info = SLOT_TO_ROLE.get(slot)
+    if role_info:
+        return f"{slot} · {role_info['role']}"
     pos = FORMATIONS.get(formation, {}).get(slot, {}).get("pos", "")
     return f"{slot} · {pos}" if pos else slot
 
@@ -252,24 +328,17 @@ def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remai
     ], className="ranking-table")
 
 
-def build_weights(criteria_config, critic_w, applied_w, active_criteria):
-    """Build weight sliders."""
+def build_weights(criteria_config, objective_w, applied_w, active_criteria, weighting="critic"):
+    """Build weight sliders. objective_w is whatever scheme is active (CRITIC / Entropy)."""
     items = []
+    scheme_label = "Entropy" if weighting == "entropy" else "CRITIC"
     for name, info in criteria_config.items():
-        active = name in active_criteria
-        cw = critic_w.get(name, 0)
+        cw = objective_w.get(name, 0)
         aw = applied_w.get(name, cw)
 
         items.append(html.Div([
             html.Div([
-                html.Div([
-                    dcc.Checklist(
-                        id={"type": "criteria-check", "index": name},
-                        options=[{"label": info["label"], "value": name}],
-                        value=[name] if active else [],
-                        style={"display": "inline-block"},
-                    ),
-                ], style={"flex": "1"}),
+                html.Div(info["label"], className="weight-name", style={"flex": "1"}),
                 html.Div(f"{aw:.3f}", className="weight-value",
                          id={"type": "weight-display", "index": name}),
             ], className="weight-label"),
@@ -278,25 +347,35 @@ def build_weights(criteria_config, critic_w, applied_w, active_criteria):
                 min=0, max=1, step=0.01, value=aw,
                 marks=None,
                 tooltip={"placement": "bottom", "always_visible": False},
-                disabled=not active,
             ),
-            html.Div(f"CRITIC: {cw:.3f}",
-                     style={"fontSize": "9px", "color": "#6b6b76",
-                            "textAlign": "right", "marginTop": "2px"}),
+            html.Div(f"{scheme_label}: {cw:.3f}",
+                     className="weight-scheme-tag"),
         ], className="weight-item"))
 
     return html.Div(items, className="weight-grid")
 
 
 def build_player_detail(player_id, position_data):
-    """Build player detail panel: radar chart + per-criterion breakdown bars."""
-    if not position_data or player_id not in position_data.get("players", {}):
-        return None
+    """Build player detail panel: radar chart + per-criterion breakdown bars.
 
-    player_scores = position_data["players"][player_id]
+    Renders even without a selected player — falls back to position averages
+    so the infographic is always visible once a position is chosen.
+    """
+    if not position_data or not position_data.get("criteria_labels"):
+        return html.Div([
+            html.Div("Position infographic", className="detail-player-name"),
+            html.Div("Select a position to view the radar.", className="detail-hint"),
+        ], className="player-detail-content", style={"padding": "16px 18px"})
+
     avg_scores    = position_data.get("avg", {})
     labels        = position_data.get("criteria_labels", {})
-    player_name   = position_data.get("names", {}).get(player_id, "Player")
+    has_player    = bool(player_id) and player_id in position_data.get("players", {})
+    if has_player:
+        player_scores = position_data["players"][player_id]
+        player_name   = position_data.get("names", {}).get(player_id, "Player")
+    else:
+        player_scores = avg_scores
+        player_name   = "Position average"
     criteria_keys = list(labels.keys())
     criteria_names = [labels[k] for k in criteria_keys]
 
@@ -309,11 +388,12 @@ def build_player_detail(player_id, position_data):
     av_ring = av_vals + [av_vals[0]]
 
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=p_ring, theta=theta, fill="toself", name=player_name,
-        line=dict(color="#d4845a", width=2),
-        fillcolor="rgba(212,132,90,0.18)",
-    ))
+    if has_player:
+        fig.add_trace(go.Scatterpolar(
+            r=p_ring, theta=theta, fill="toself", name=player_name,
+            line=dict(color="#d4845a", width=2),
+            fillcolor="rgba(212,132,90,0.18)",
+        ))
     fig.add_trace(go.Scatterpolar(
         r=av_ring, theta=theta, fill="toself", name="Position avg",
         line=dict(color="#60a5fa", width=1.5, dash="dot"),
@@ -352,10 +432,11 @@ def build_player_detail(player_id, position_data):
             html.Span(f"{pv:.2f}", className="breakdown-val"),
         ], className="breakdown-item"))
 
+    hint = "Click another player to compare" if has_player else "Click a player for their profile"
     return html.Div([
         html.Div([
             html.Div(player_name, className="detail-player-name"),
-            html.Div("Selection stays open", className="detail-hint"),
+            html.Div(hint, className="detail-hint"),
         ], className="detail-header"),
         html.Div([
             html.Div(dcc.Graph(figure=fig, config={"displayModeBar": False}),
@@ -384,7 +465,6 @@ app.layout = html.Div([
     # ── Header ──
     html.Div([
         html.Div([
-            html.Span("⚽", className="app-title-icon"),
             html.Span("Transfer Window Manager"),
         ], className="app-title"),
 
@@ -400,6 +480,8 @@ app.layout = html.Div([
                         {"label": "TOPSIS", "value": "TOPSIS"},
                         {"label": "SAW", "value": "SAW"},
                         {"label": "WP", "value": "WP"},
+                        {"label": "WASPAS", "value": "WASPAS"},
+                        {"label": "CODAS", "value": "CODAS"},
                         {"label": "Borda Consensus", "value": "Borda Consensus"},
                     ],
                     value="PROMETHEE II",
@@ -407,6 +489,21 @@ app.layout = html.Div([
                     searchable=False,
                     className="custom-grey-dropdown",
                     style={"width": "160px", "fontSize": "12px", "color": "#000"},
+                ),
+            ], className="header-stat"),
+
+            html.Div([
+                html.Div("Weighting", className="header-stat-label"),
+                dcc.RadioItems(
+                    id="weighting-selector",
+                    options=[
+                        {"label": " CRITIC",  "value": "critic"},
+                        {"label": " Entropy", "value": "entropy"},
+                    ],
+                    value="critic",
+                    inline=True,
+                    style={"fontSize": "12px", "color": "#ffffff"},
+                    labelStyle={"color": "#ffffff", "marginRight": "10px"},
                 ),
             ], className="header-stat"),
 
@@ -470,14 +567,15 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div("Formation", className="panel-title"),
-                dcc.Dropdown(
+                dcc.RadioItems(
                     id="formation-dropdown",
                     options=[{"label": f, "value": f} for f in FORMATIONS.keys()],
                     value="4-3-3",
-                    clearable=False,
-                    style={"width": "150px"},
+                    inline=True,
+                    className="formation-radio",
+                    labelStyle={"marginRight": "0"},
                 ),
-            ], className="panel-header", style={"gap": "16px"}),
+            ], className="panel-header formation-header"),
             html.Div([
                 html.Div(id="pitch-display"),
                 html.Div([
@@ -529,6 +627,16 @@ app.layout = html.Div([
             html.Div(id="player-detail-panel"),
         ], className="panel"),
     ], className="main-container"),
+
+    # ── Method Info Panel ──
+    html.Div([
+        html.Div([
+            html.Div([
+                html.Div("Method & Weighting", className="panel-title"),
+            ], className="panel-header"),
+            html.Div(id="method-explanation", className="panel-body method-explainer"),
+        ], className="panel method-info-panel"),
+    ], className="method-panel-wrapper"),
 
     # ── Weights Panel ──
     html.Div([
@@ -617,8 +725,8 @@ def select_position(n_clicks, formation, current):
      Output("store-position-data", "data")],
     [Input("store-selected-position", "data"),
      Input("method-selector", "value"),
+     Input("weighting-selector", "value"),
      Input({"type": "weight-slider", "index": ALL}, "value"),
-     Input({"type": "criteria-check", "index": ALL}, "value"),
      Input("reset-weights-btn", "n_clicks"),
      Input("store-assigned-players", "data"),
      Input("search-input", "value"),
@@ -626,7 +734,7 @@ def select_position(n_clicks, formation, current):
     [State("formation-dropdown", "value"),
      State("store-budget", "data")],
 )
-def update_rankings(selected_pos, method, slider_values, check_values,
+def update_rankings(selected_pos, method, weighting, slider_values,
                     reset_clicks, assigned, search, budget_filter_val,
                     formation, budget_store):
     ctx = callback_context
@@ -648,12 +756,22 @@ def update_rankings(selected_pos, method, slider_values, check_values,
     if not selected_pos:
         return empty_rank, empty_weight, {}, {}
 
-    pos_type = FORMATIONS.get(formation, {}).get(selected_pos, {}).get("pos", "Forward")
-    criteria_config = POSITION_CRITERIA.get(pos_type, {})
+    # Resolve slot → specific role + eligible pool. Fall back to broad position
+    # if the slot is somehow unmapped (defensive — every slot should be in SLOT_TO_ROLE).
+    role_info = SLOT_TO_ROLE.get(selected_pos)
+    if role_info:
+        role_key = role_info["role"]
+        pool = role_info["pool"]
+        broad = role_info["broad"]
+        criteria_config = ROLE_CRITERIA.get(role_key, {})
+        players = get_role_players(PLAYER_DB, pool, broad_fallback=broad)
+    else:
+        broad = FORMATIONS.get(formation, {}).get(selected_pos, {}).get("pos", "Forward")
+        criteria_config = POSITION_CRITERIA.get(broad, {})
+        players = get_position_players(PLAYER_DB, broad)
+
     if not criteria_config:
         return html.Div("No criteria for this position."), html.Div(), {}, {}
-
-    players = get_position_players(PLAYER_DB, pos_type)
 
     # Filter out players assigned to other positions
     current_id_key = f"{selected_pos}_id"
@@ -668,22 +786,6 @@ def update_rankings(selected_pos, method, slider_values, check_values,
     criteria_order = list(criteria_config.keys())
     active = criteria_order.copy()
 
-    # Active criteria from checkboxes
-    if check_values and len(check_values) == len(criteria_order):
-        active = [name for name, selected in zip(criteria_order, check_values)
-                  if selected and name in selected]
-    elif check_values:
-        try:
-            ids = [json.loads(t["prop_id"].split(".")[0])["index"]
-                   for t in ctx.inputs_list[3]] if ctx.inputs_list else []
-            if ids:
-                active = [n for n, v in zip(ids, check_values) if v and n in v]
-        except (json.JSONDecodeError, KeyError, IndexError):
-            pass
-
-    if not active:
-        active = criteria_order
-
     slider_map = {}
     if slider_values and len(slider_values) == len(criteria_order):
         slider_map = {
@@ -693,34 +795,40 @@ def update_rankings(selected_pos, method, slider_values, check_values,
     elif slider_values:
         try:
             ids = [json.loads(t["prop_id"].split(".")[0])["index"]
-                   for t in ctx.inputs_list[2]] if ctx.inputs_list else []
+                   for t in ctx.inputs_list[3]] if ctx.inputs_list else []
             if ids and len(ids) == len(slider_values):
                 slider_map = {n: float(v if v is not None else 0.0)
                               for n, v in zip(ids, slider_values)}
         except (json.JSONDecodeError, KeyError, IndexError, TypeError, ValueError):
             slider_map = {}
 
-    # Custom weights from sliders
+    # Custom weights from sliders.
+    # Triggers that should DROP slider values and recompute fresh objective weights:
+    #   - reset button, position change, weighting-scheme change.
+    # Triggers that SHOULD keep current sliders (so unrelated controls don't
+    # nuke a tuned weight config): budget, search, assigned-players change.
+    # Slider change → rebalance with the moved slider preserved.
+    fresh_triggers = ("reset-weights-btn",
+                      "store-selected-position",
+                      "weighting-selector")
+    use_custom = not any(t in triggered_id for t in fresh_triggers)
     custom_weights = None
-    use_custom = "reset-weights-btn" not in triggered_id
     if use_custom and slider_map:
-        changed_name = None
         if "weight-slider" in triggered_id:
             try:
                 changed_name = json.loads(triggered_id.split(".")[0])["index"]
+                custom_weights = rebalance_weights_after_change(slider_map, active, changed_name)
             except (json.JSONDecodeError, KeyError, TypeError):
-                changed_name = None
-
-        if changed_name:
-            custom_weights = rebalance_weights_after_change(slider_map, active, changed_name)
+                custom_weights = slider_map
         else:
-            custom_weights = normalize_active_weights(slider_map, active)
+            custom_weights = slider_map
 
     active_config = {k: v for k, v in criteria_config.items() if k in active}
 
     try:
-        ranked_df, critic_w, applied_w = rank_players(
-            players, active_config, method=method, custom_weights=custom_weights
+        ranked_df, objective_w, applied_w = rank_players(
+            players, active_config, method=method,
+            custom_weights=custom_weights, weighting=weighting,
         )
     except Exception as e:
         return html.Div(f"Error: {e}"), html.Div(), {}, {}
@@ -733,13 +841,17 @@ def update_rankings(selected_pos, method, slider_values, check_values,
         "TOPSIS": "AHP",
         "SAW": "WP",
         "WP": "SAW",
-        "Borda Consensus": "PROMETHEE II",
+        "WASPAS": "CODAS",
+        "CODAS": "WASPAS",
+        "BORDA CONSENSUS": "PROMETHEE II",
     }
-    alt_method = alt_map.get(method, "PROMETHEE II")
-
+    method_upper = method.upper().strip()
+    if method_upper == "PROMETHEE":
+        method_upper = "PROMETHEE II"
+    alt_method = alt_map.get(method_upper, "PROMETHEE II")
     try:
         alt_ranked, _, _ = rank_players(players, active_config, method=alt_method,
-                                        custom_weights=custom_weights)
+                                        custom_weights=custom_weights, weighting=weighting)
         alt_ranks = {str(row["id"]): int(row["rank"]) for _, row in alt_ranked.iterrows()}
     except Exception:
         alt_ranks = {}
@@ -787,7 +899,7 @@ def update_rankings(selected_pos, method, slider_values, check_values,
                                "value": float(row.get("market_value_eur_m", 0))}
              for _, row in ranked_df.iterrows()}
 
-    weights = build_weights(criteria_config, critic_w, applied_w, active)
+    weights = build_weights(criteria_config, objective_w, applied_w, active, weighting=weighting)
     return table, weights, cache, pos_data
 
 
@@ -824,6 +936,17 @@ def select_player(row_clicks, selected_pos, current_player):
     return pid
 
 
+# Method + weighting explanation card
+@app.callback(
+    Output("method-explanation", "children"),
+    [Input("method-selector", "value"),
+     Input("weighting-selector", "value"),
+     Input("store-selected-position", "data")],
+)
+def update_method_explanation(method, weighting, selected_pos):
+    return build_method_explanation(method, weighting)
+
+
 # Render player detail panel
 @app.callback(
     Output("player-detail-panel", "children"),
@@ -831,7 +954,7 @@ def select_player(row_clicks, selected_pos, current_player):
      Input("store-position-data", "data")],
 )
 def update_player_detail(player_id, position_data):
-    if not player_id or not position_data:
+    if not position_data:
         return None
     return build_player_detail(player_id, position_data)
 
@@ -889,15 +1012,20 @@ def assign_player(player_clicks, clear_clicks, remove_clicks, budget, formation,
                     if not k.startswith(selected_pos)}
 
     elif "player-row" in triggered_id and selected_pos and cache:
-        try:
-            pid = json.loads(triggered_id.split(".")[0])["index"]
-            info = cache.get(pid, {})
-            if info:
-                assigned[selected_pos]               = info.get("name", "?")
-                assigned[f"{selected_pos}_value"]    = info.get("value", 0)
-                assigned[f"{selected_pos}_id"]       = pid
-        except (json.JSONDecodeError, KeyError):
+        # Table re-render re-creates player-row components with n_clicks=0,
+        # which Dash treats as an input change. Ignore those phantom triggers.
+        if not player_clicks or all((n or 0) == 0 for n in player_clicks):
             pass
+        else:
+            try:
+                pid = json.loads(triggered_id.split(".")[0])["index"]
+                info = cache.get(pid, {})
+                if info:
+                    assigned[selected_pos]            = info.get("name", "?")
+                    assigned[f"{selected_pos}_value"] = info.get("value", 0)
+                    assigned[f"{selected_pos}_id"]    = pid
+            except (json.JSONDecodeError, KeyError):
+                pass
 
     formation_def = FORMATIONS.get(formation, {})
     total_slots = len(formation_def)

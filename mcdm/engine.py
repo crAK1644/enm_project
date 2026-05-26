@@ -63,9 +63,11 @@ def calculate_mcdm(method_name: str, matrix: pd.DataFrame, weights: np.ndarray, 
         'PROMETHEE II': lambda: promethee_ii(matrix.values, weights, criteria_types),
         'VIKOR': lambda: vikor(matrix.values, weights, criteria_types),
         'AHP': lambda: _ahp(matrix, weights, criteria_types),
-        'TOPSIS': lambda: _topsis(matrix, weights, criteria_types),
+        'TOPSIS': lambda: topsis(matrix.values, weights, criteria_types),
         'SAW': lambda: _saw(matrix, weights, criteria_types),
-        'WP': lambda: _wp(matrix, weights, criteria_types)
+        'WP': lambda: _wp(matrix, weights, criteria_types),
+        'WASPAS': lambda: waspas(matrix.values, weights, criteria_types),
+        'CODAS': lambda: codas(matrix.values, weights, criteria_types)
     }
     
     for key in methods:
@@ -324,7 +326,7 @@ def borda_consensus(rank_df):
 
 
 def _borda_consensus_from_methods(matrix, weights, criteria_types):
-    base_methods = ['PROMETHEE II', 'VIKOR', 'AHP', 'TOPSIS', 'SAW', 'WP']
+    base_methods = ['PROMETHEE II', 'VIKOR', 'AHP', 'TOPSIS', 'SAW', 'WP', 'WASPAS', 'CODAS']
     rank_matrix = pd.DataFrame(index=matrix.index)
     for m in base_methods:
         result = calculate_mcdm(m, matrix, weights, criteria_types)
@@ -334,6 +336,9 @@ def _borda_consensus_from_methods(matrix, weights, criteria_types):
         elif m == 'VIKOR':
             Q, _, _, _ = result
             ranks = pd.Series(Q, index=matrix.index).rank(ascending=True, method='min').astype(int)
+        elif m in ('TOPSIS', 'WASPAS', 'CODAS'):
+            scores, _ = result
+            ranks = pd.Series(scores, index=matrix.index).rank(ascending=False, method='min').astype(int)
         else:
             ranks = result.rank(ascending=False, method='min').astype(int)
         rank_matrix[m] = ranks
@@ -342,61 +347,208 @@ def _borda_consensus_from_methods(matrix, weights, criteria_types):
 
 
 # ─────────────────────────────────────────────────────────────
-# Unified ranking function
+# Shannon Entropy: alternative objective weight determination
 # ─────────────────────────────────────────────────────────────
 
-def rank_players(player_df, criteria_config, method="PROMETHEE II", custom_weights=None, alpha=0.5):
+def entropy_weights(matrix, types):
+    """
+    Shannon-entropy objective weights.
+
+    Lower entropy = higher information content = higher weight. Used as an
+    objective alternative to CRITIC; the football MCDM literature commonly
+    reports CRITIC and Entropy results side by side for sensitivity.
+    """
+    m, n = matrix.shape
+
+    # Direction-aware normalization so cost criteria contribute correctly.
+    norm = np.zeros_like(matrix, dtype=float)
+    for j in range(n):
+        col = matrix[:, j]
+        if types[j] == 1:
+            col_pos = col - col.min() + 1e-12
+        else:
+            col_pos = col.max() - col + 1e-12
+        s = col_pos.sum()
+        norm[:, j] = col_pos / s if s > 0 else 1.0 / m
+
+    k = 1.0 / np.log(m) if m > 1 else 0.0
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ent = -k * np.sum(np.where(norm > 0, norm * np.log(norm), 0.0), axis=0)
+    ent = np.clip(ent, 0.0, 1.0)
+    diversity = 1.0 - ent
+    total = diversity.sum()
+    return diversity / total if total > 0 else np.ones(n) / n
+
+
+# ─────────────────────────────────────────────────────────────
+# TOPSIS: Distance to ideal / anti-ideal
+# ─────────────────────────────────────────────────────────────
+
+def topsis(matrix, weights, types):
+    """
+    TOPSIS ranking via closeness to the positive-ideal solution.
+
+    Returns closeness coefficient C* in [0,1] (higher = better) and rank positions.
+    """
+    m, n = matrix.shape
+
+    # Vector (Euclidean) normalization — TOPSIS standard.
+    denom = np.sqrt((matrix ** 2).sum(axis=0))
+    denom = np.where(denom == 0, 1.0, denom)
+    norm = matrix / denom
+
+    weighted = norm * weights
+
+    pis = np.where(types == 1, weighted.max(axis=0), weighted.min(axis=0))
+    nis = np.where(types == 1, weighted.min(axis=0), weighted.max(axis=0))
+
+    d_pos = np.sqrt(((weighted - pis) ** 2).sum(axis=1))
+    d_neg = np.sqrt(((weighted - nis) ** 2).sum(axis=1))
+
+    denom2 = d_pos + d_neg
+    closeness = np.where(denom2 > 0, d_neg / denom2, 0.0)
+
+    rank_positions = np.empty(m, dtype=int)
+    rank_positions[np.argsort(-closeness)] = np.arange(1, m + 1)
+    return closeness, rank_positions
+
+
+# ─────────────────────────────────────────────────────────────
+# WASPAS: Weighted Aggregated Sum-Product
+# ─────────────────────────────────────────────────────────────
+
+def waspas(matrix, weights, types, lam=0.5):
+    """
+    WASPAS = lam * WSM + (1-lam) * WPM on a benefit-direction-normalized matrix.
+
+    Görcün (2021) paired CRITIC + WASPAS for goalkeeper selection — the closest
+    published match to this app's setup.
+    """
+    m, n = matrix.shape
+
+    # Direction-aware linear normalization to [0,1] so WPM exponents stay well-defined.
+    norm = np.zeros_like(matrix, dtype=float)
+    for j in range(n):
+        col = matrix[:, j]
+        if types[j] == 1:
+            mx = col.max() if col.max() != 0 else 1.0
+            norm[:, j] = col / mx
+        else:
+            mn = col.min() if col.min() != 0 else 1e-12
+            norm[:, j] = mn / np.where(col == 0, 1e-12, col)
+    norm = np.clip(norm, 1e-12, None)  # keep strictly positive for WPM
+
+    wsm = (norm * weights).sum(axis=1)
+    wpm = np.prod(norm ** weights, axis=1)
+    q = lam * wsm + (1 - lam) * wpm
+
+    rank_positions = np.empty(m, dtype=int)
+    rank_positions[np.argsort(-q)] = np.arange(1, m + 1)
+    return q, rank_positions
+
+
+# ─────────────────────────────────────────────────────────────
+# CODAS: COmbinative Distance-based ASsessment
+# ─────────────────────────────────────────────────────────────
+
+def codas(matrix, weights, types, tau=0.02):
+    """
+    CODAS scores alternatives by their combined Euclidean + Taxicab distance
+    from the negative-ideal solution. Taxicab distance is used as a tie-breaker
+    via a threshold function with threshold tau (Keshavarz-Ghorabai et al. 2016).
+    """
+    m, n = matrix.shape
+
+    # Direction-aware linear normalization.
+    norm = np.zeros_like(matrix, dtype=float)
+    for j in range(n):
+        col = matrix[:, j]
+        if types[j] == 1:
+            mx = col.max() if col.max() != 0 else 1.0
+            norm[:, j] = col / mx
+        else:
+            mn = col.min() if col.min() != 0 else 1e-12
+            norm[:, j] = mn / np.where(col == 0, 1e-12, col)
+
+    weighted = norm * weights
+    nis = weighted.min(axis=0)
+
+    diff = weighted - nis
+    eucl = np.sqrt((diff ** 2).sum(axis=1))
+    taxi = np.abs(diff).sum(axis=1)
+
+    def psi(x):
+        return 1.0 if abs(x) >= tau else 0.0
+
+    scores = np.zeros(m)
+    for i in range(m):
+        s = eucl[i]
+        for k in range(m):
+            if i == k:
+                continue
+            s += psi(eucl[i] - eucl[k]) * (taxi[i] - taxi[k])
+        scores[i] = s
+
+    rank_positions = np.empty(m, dtype=int)
+    rank_positions[np.argsort(-scores)] = np.arange(1, m + 1)
+    return scores, rank_positions
+
+
+# ─────────────────────────────────────────────────────────────
+SUPPORTED_METHODS = ("PROMETHEE II", "VIKOR", "AHP", "TOPSIS", "SAW", "WP", "WASPAS", "CODAS", "Borda Consensus")
+SUPPORTED_WEIGHTINGS = ("critic", "entropy", "hybrid")
+
+
+def rank_players(player_df, criteria_config, method="PROMETHEE II",
+                 custom_weights=None, weighting="critic", alpha=0.5):
     """
     Rank players using the specified MCDM method.
-    
+
     Parameters:
         player_df:       pd.DataFrame       - player data
-        criteria_config: dict               - from POSITION_CRITERIA
-        method:          str                - "promethee" or "vikor"
+        criteria_config: dict               - from POSITION_CRITERIA or ROLE_CRITERIA
+        method:          str                - one of SUPPORTED_METHODS
         custom_weights:  dict or None       - custom weights {criteria_name: weight}
+        weighting:       str                - 'critic' (default), 'entropy', or 'hybrid'
         alpha:           float              - compromise weight blending factor (0 = Entropy, 1 = CRITIC)
     
     Returns:
-        pd.DataFrame with added rank and score columns
+        (result, objective_weights_dict, applied_weights_dict)
     """
     if len(player_df) < 2:
         player_df = player_df.copy()
         player_df["rank"] = 1
         player_df["score"] = 1.0
-        return player_df
-    
-    # Build decision matrix
+        return player_df, {}, {}
+
     criteria_names = list(criteria_config.keys())
     columns = [criteria_config[c]["column"] for c in criteria_names]
     types = np.array([criteria_config[c]["type"] for c in criteria_names])
-    
-    # Extract matrix
+
     matrix = player_df[columns].values.astype(float)
-    
-    # Handle NaN/Inf
     matrix = np.nan_to_num(matrix, nan=0.0, posinf=0.0, neginf=0.0)
-    
-    # Calculate CRITIC weights
+
+    # Determine objective baseline weights.
     critic_w = critic_weights(matrix, types)
+    shannon_w = entropy_weights(matrix, types)
     
-    # Calculate Shannon Entropy weights
-    shannon_w = shannon_entropy_weights(matrix, types)
-    
-    # Hybridize weights
-    hybrid_w = hybridize_weights(critic_w, shannon_w, alpha=alpha)
-    
-    # Use custom weights if provided, otherwise use hybrid weights
+    if weighting == "entropy":
+        hybrid_w = shannon_w
+    elif weighting == "critic":
+        hybrid_w = critic_w
+    else:
+        # hybrid or custom alpha
+        hybrid_w = hybridize_weights(critic_w, shannon_w, alpha=alpha)
+
+    # Slider overrides, then renormalize.
     if custom_weights:
-        weights = np.array([custom_weights.get(c, hybrid_w[i]) for i, c in enumerate(criteria_names)])
-        # Normalize
+        weights = np.array([custom_weights.get(c, hybrid_w[i])
+                            for i, c in enumerate(criteria_names)])
         w_sum = weights.sum()
-        if w_sum > 0:
-            weights = weights / w_sum
-        else:
-            weights = hybrid_w
+        weights = weights / w_sum if w_sum > 0 else hybrid_w
     else:
         weights = hybrid_w
-    
+
     # Apply MCDM method
     result = player_df.copy()
     
@@ -405,27 +557,28 @@ def rank_players(player_df, criteria_config, method="PROMETHEE II", custom_weigh
     
     # Map the output scores to result columns based on method
     method_normalized = method.upper().replace("_", " ").replace("-", " ")
-    if "PROMETHEE" in method_normalized:
-        scores, ranks = scores_data
-        result["score"] = scores
-        result["rank"] = ranks
-    elif "VIKOR" in method_normalized:
-        Q, S, R, ranks = scores_data
-        result["score"] = 1 - Q  # Invert so higher = better
-        result["q_value"] = Q
-        result["rank"] = ranks
+    
+    if method_normalized in ("PROMETHEE", "PROMETHEE II", "VIKOR", "TOPSIS", "WASPAS", "CODAS"):
+        if "VIKOR" in method_normalized:
+            Q, S, R, ranks = scores_data
+            result["score"] = 1 - Q  # Invert so higher = better
+            result["q_value"] = Q
+            result["rank"] = ranks
+        else:
+            scores, ranks = scores_data
+            result["score"] = scores
+            result["rank"] = ranks
     else:
+        # AHP, SAW, WP, Borda Consensus return pd.Series
         result["score"] = scores_data.values
         ranks = np.empty(len(scores_data), dtype=int)
         ranks[np.argsort(-scores_data.values)] = np.arange(1, len(scores_data) + 1)
         result["rank"] = ranks
 
-    
     # Add Hybrid weights info
     result.attrs["critic_weights"] = dict(zip(criteria_names, hybrid_w))
     result.attrs["applied_weights"] = dict(zip(criteria_names, weights))
-    
-    # Sort by rank
+    result.attrs["weighting"] = weighting
     result = result.sort_values("rank")
     
     return result, dict(zip(criteria_names, hybrid_w)), dict(zip(criteria_names, weights))
