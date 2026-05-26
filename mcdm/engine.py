@@ -47,10 +47,14 @@ def _saw(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> p
 
 def _wp(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> pd.Series:
     epsilon = 1e-5
-    matrix = df.values + epsilon
-    norm_matrix = np.where(criteria_types == 1, 
-                           matrix / np.maximum(1e-10, np.max(matrix, axis=0)), 
+    matrix = df.values.astype(float)
+    col_min = matrix.min(axis=0)
+    shift = np.where(col_min < 0, -col_min, 0.0)
+    matrix = matrix + shift + epsilon
+    norm_matrix = np.where(criteria_types == 1,
+                           matrix / np.maximum(1e-10, np.max(matrix, axis=0)),
                            np.min(matrix, axis=0) / np.maximum(1e-10, matrix))
+    norm_matrix = np.clip(norm_matrix, 1e-12, None)
     scores = np.prod(norm_matrix ** weights, axis=1)
     return pd.Series(scores, index=df.index)
 
