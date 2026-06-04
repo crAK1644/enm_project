@@ -880,6 +880,13 @@ body {
     padding-top: 14px;
     border-top: 1px solid var(--surface-border);
 }
+/* Standalone actions row lives outside the dynamically-rendered panel, so it
+   needs the wrapper's horizontal padding and no panel-internal divider. */
+.opt-actions-standalone {
+    padding: 0 28px;
+    margin-top: 10px;
+    border-top: none;
+}
 .optimizer-infeasible {
     display: flex;
     align-items: center;

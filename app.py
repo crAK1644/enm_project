@@ -546,27 +546,6 @@ WEIGHTING_EXPLANATIONS = {
 }
 
 
-def build_method_explanation(method, weighting):
-    """Plain-English description of the active method + weighting scheme."""
-    method_key = METHOD_ALIASES.get(str(method).strip().lower(), str(method).strip().lower())
-    info = METHOD_EXPLANATIONS.get(method_key)
-    if not info:
-        return None
-    weight_label = "Entropy" if weighting == "entropy" else "CRITIC"
-    weight_body = WEIGHTING_EXPLANATIONS.get(weighting, "")
-    return html.Div([
-        html.Div([
-            html.Span(info["name"], className="method-explainer-name"),
-            html.Span(info["summary"], className="method-explainer-summary"),
-        ], className="method-explainer-header"),
-        html.Div(info["body"], className="method-explainer-body"),
-        html.Div([
-            html.Span(f"Weights: {weight_label}", className="method-explainer-weight-label"),
-            html.Span(weight_body, className="method-explainer-weight-body"),
-        ], className="method-explainer-weight"),
-    ])
-
-
 def position_indicator_text(formation, slot):
     """Build indicator text for the currently selected slot."""
     if not slot:
@@ -1000,7 +979,20 @@ app.layout = html.Div([
     ], className="main-container"),
 
     # ── Optimizer Preview Panel (hidden until a run has output) ──
-    html.Div(id="optimizer-preview-wrapper", className="optimizer-preview-wrapper"),
+    # The action buttons live in the static layout (always present) and are
+    # shown/hidden by toggle_optimizer_actions. Keeping them out of the
+    # dynamically-rendered preview avoids dash-renderer "nonexistent object in
+    # Input" errors when no preview is on screen.
+    html.Div([
+        html.Div(id="optimizer-preview-wrapper", className="optimizer-preview-wrapper"),
+        html.Div([
+            html.Button("Apply", id="apply-preview-btn",
+                        className="btn-secondary btn-secondary-accent", n_clicks=0),
+            html.Button("Discard", id="discard-preview-btn",
+                        className="btn-secondary", n_clicks=0),
+        ], id="optimizer-actions", className="opt-actions opt-actions-standalone",
+           style={"display": "none"}),
+    ], className="optimizer-preview-section"),
 
     # ── Method Info Panel ──
     html.Div([
@@ -1205,6 +1197,26 @@ def run_optimizer(fill_n, opt_n, _formation_change, assigned, budget_max,
 
 
 @app.callback(
+    Output("optimizer-actions", "style"),
+    Output("apply-preview-btn", "style"),
+    Output("discard-preview-btn", "children"),
+    Input("store-optimizer-preview", "data"),
+)
+def toggle_optimizer_actions(preview):
+    """Show/hide the persistent action buttons to match the current preview.
+
+    No preview        -> actions hidden entirely.
+    Optimal preview   -> Apply + Discard.
+    Infeasible preview -> Apply hidden, the other button reads "Dismiss".
+    """
+    if not preview:
+        return {"display": "none"}, {}, "Discard"
+    if preview.get("status") != "optimal":
+        return {"display": "flex"}, {"display": "none"}, "Dismiss"
+    return {"display": "flex"}, {}, "Discard"
+
+
+@app.callback(
     Output("optimizer-preview-wrapper", "children"),
     Input("store-optimizer-preview", "data"),
     State("formation-dropdown", "value"),
@@ -1225,8 +1237,6 @@ def render_optimizer_preview(preview, formation):
                 html.Div([
                     html.Div(preview.get("message", "Infeasible."),
                              className="optimizer-warn-text"),
-                    html.Button("Dismiss", id="discard-preview-btn",
-                                className="btn-secondary", n_clicks=0),
                 ], className="optimizer-infeasible panel-body"),
             ], className="panel"),
         ], className="optimizer-preview-inner")
@@ -1327,14 +1337,6 @@ def render_optimizer_preview(preview, formation):
                     ])),
                     html.Tbody(rows),
                 ], className="ranking-table opt-table"),
-
-                html.Div([
-                    html.Button("Apply", id="apply-preview-btn",
-                                className="btn-secondary btn-secondary-accent",
-                                n_clicks=0),
-                    html.Button("Discard", id="discard-preview-btn",
-                                className="btn-secondary", n_clicks=0),
-                ], className="opt-actions"),
             ], className="panel-body"),
         ], className="panel"),
     ], className="optimizer-preview-inner")
@@ -1479,22 +1481,8 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         criteria_config = POSITION_CRITERIA.get(broad, {})
         players = get_position_players(PLAYER_DB, broad)
 
-    # Resolve slot → specific role + eligible pool. Fall back to broad position
-    # if the slot is somehow unmapped (defensive — every slot should be in SLOT_TO_ROLE).
-    role_info = SLOT_TO_ROLE.get(selected_pos)
-    if role_info:
-        role_key = role_info["role"]
-        pool = role_info["pool"]
-        broad = role_info["broad"]
-        criteria_config = ROLE_CRITERIA.get(role_key, {})
-        players = get_role_players(PLAYER_DB, pool, broad_fallback=broad)
-    else:
-        broad = FORMATIONS.get(formation, {}).get(selected_pos, {}).get("pos", "Forward")
-        criteria_config = POSITION_CRITERIA.get(broad, {})
-        players = get_position_players(PLAYER_DB, broad)
-
     if not criteria_config:
-        return html.Div("No criteria for this position."), html.Div(), {}, {}
+        return html.Div("No criteria for this position."), html.Div(), {}, {}, btn_text, True
 
     # Filter out players assigned to other positions
     current_id_key = f"{selected_pos}_id"
@@ -1620,6 +1608,22 @@ def update_rankings(selected_pos, method, weighting, slider_values,
     cache = {str(row["id"]): {"name": row["display_name"],
                                "value": float(row.get("market_value_eur_m", 0))}
              for _, row in ranked_df.iterrows()}
+
+    # The weight sliders live inside `weights-container`, which is also an Output
+    # of this callback while the slider VALUES are an Input — a self-feeding
+    # cycle. Rebuilding the container recreates the sliders, whose value change
+    # re-fires this callback. That re-render is only warranted when the weights
+    # actually change: a position/weighting/reset change, or a slider drag.
+    # For every other trigger (method switch, budget, search, assignment,
+    # player selection) the weights are unchanged, so re-emitting the container
+    # only spawns a wasteful cascade — and for the heavy methods (Borda, PROMETHEE)
+    # rapid method switches stack those cascades until the UI freezes. Emit
+    # `no_update` for the weight outputs in that case to break the cycle.
+    weight_triggers = fresh_triggers + ("weight-slider",)
+    rebuild_weights = (not triggered_id) or any(t in triggered_id for t in weight_triggers)
+
+    if not rebuild_weights:
+        return table, dash.no_update, cache, pos_data, dash.no_update, dash.no_update
 
     weights = build_weights(criteria_config, objective_w, applied_w, active, weighting=weighting)
 
