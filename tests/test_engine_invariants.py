@@ -21,7 +21,7 @@ from mcdm.engine import rank_players, SUPPORTED_METHODS
 
 PARENT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-METHODS = ["promethee", "vikor", "ahp", "topsis", "saw",
+METHODS = ["promethee", "vikor", "topsis", "saw",
            "wp", "waspas", "codas", "borda_consensus"]
 WEIGHTINGS = ["critic", "entropy"]
 

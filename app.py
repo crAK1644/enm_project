@@ -22,7 +22,7 @@ sys.path.insert(0, PROJECT_DIR)
 
 from mcdm.data_processor import build_player_database, get_position_players, get_role_players
 from mcdm.criteria import POSITION_CRITERIA, ROLE_CRITERIA, SLOT_TO_ROLE, FORMATIONS
-from mcdm.engine import rank_players, METHOD_ALIASES
+from mcdm.engine import rank_players, METHOD_ALIASES, SUPPORTED_METHODS
 from mcdm.optimizer import optimize_squad
 
 # ─────────────────────────────────────────────────────────────
@@ -380,14 +380,6 @@ METHOD_EXPLANATIONS = {
                  "utility (S = sum of weighted gaps) against individual regret "
                  "(R = the single largest gap). Scores shown are 1 − Q so higher is better."),
     },
-    "AHP": {
-        "name": "AHP",
-        "summary": "Analytic Hierarchy Process.",
-        "body": ("Structures the decision into a hierarchy of criteria and alternatives, "
-                 "then derives priority weights from pairwise comparison matrices. "
-                 "The final score is a weighted sum of normalised criterion values. "
-                 "Widely used in management science since Saaty (1980)."),
-    },
     "TOPSIS": {
         "name": "TOPSIS",
         "summary": "Distance to ideal & anti-ideal.",
@@ -431,9 +423,9 @@ METHOD_EXPLANATIONS = {
     "Borda Consensus": {
         "name": "Borda Consensus",
         "summary": "Multi-method rank aggregation.",
-        "body": ("Runs AHP, TOPSIS, and SAW independently, assigns Borda points "
+        "body": ("Runs the other base methods independently, assigns Borda points "
                  "based on each method's ranking, then sums them into a consensus "
-                 "score. Players consistently ranked high across all three methods "
+                 "score. Players consistently ranked high across all methods "
                  "rise to the top — reducing single-method bias."),
     },
 }
@@ -485,12 +477,6 @@ METHOD_EXPLANATIONS = {
                  "keeping their worst-criterion shortfall small. Balances group "
                  "utility (S = sum of weighted gaps) against individual regret "
                  "(R = the single largest gap). Scores shown are 1 − Q so higher is better."),
-    },
-    "ahp": {
-        "name": "AHP",
-        "summary": "Weighted priority synthesis.",
-        "body": ("Builds a composite priority for each player from normalized criterion "
-                 "scores and criterion weights. Strong all-round profiles rise to the top."),
     },
     "topsis": {
         "name": "TOPSIS",
@@ -557,8 +543,8 @@ def position_indicator_text(formation, slot):
     return f"{slot} · {pos}" if pos else slot
 
 
-def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remaining=9999, selected_player=None):
-    """Build ranking table with team, stability badge, search and budget filter."""
+def build_table(ranked_df, search="", budget_filter=False, remaining=9999, selected_player=None):
+    """Build ranking table with team, search and budget filter."""
     if ranked_df is None or len(ranked_df) == 0:
         return html.Div([
             html.Div("⚽", className="empty-state-icon"),
@@ -591,19 +577,6 @@ def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remai
         norm = (row["score"] - s_min) / s_range * 100
         pid = str(row["id"])
 
-        # Stability badge — compare rank in alternate method
-        stability_el = html.Span()
-        if alt_ranks and pid in alt_ranks:
-            delta = alt_ranks[pid] - r
-            if delta == 0:
-                stability_el = html.Span("=", className="stability-badge stability-stable")
-            elif abs(delta) <= 3:
-                arrow = "↑" if delta < 0 else "↓"
-                stability_el = html.Span(f"{arrow}{abs(delta)}", className="stability-badge stability-ok")
-            else:
-                arrow = "↑" if delta < 0 else "↓"
-                stability_el = html.Span(f"{arrow}{abs(delta)}", className="stability-badge stability-volatile")
-
         # Team name
         team = str(row.get("team_tm", "")).strip()
 
@@ -625,7 +598,6 @@ def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remai
                     html.Span(f"{row['score']:.3f}",
                               style={"fontSize": "12px", "color": "#a0a0aa",
                                      "fontFamily": "'JetBrains Mono', monospace"}),
-                    stability_el,
                 ], className="score-cell-container"), className="score-cell"),
             ],
             id={"type": "player-row", "index": pid},
@@ -636,7 +608,7 @@ def build_table(ranked_df, alt_ranks=None, search="", budget_filter=False, remai
 
     return html.Table([
         html.Thead(html.Tr([
-            html.Th("#"), html.Th("Player"), html.Th("Value"), html.Th("Score"), html.Th("Δ"),
+            html.Th("#"), html.Th("Player"), html.Th("Value"), html.Th("Score"), html.Th(""),
         ])),
         html.Tbody(rows),
     ], className="ranking-table")
@@ -669,8 +641,21 @@ def build_weights(criteria_config, objective_w, applied_w, active_criteria, weig
     return html.Div(items, className="weight-grid")
 
 
+METHOD_RANK_LABELS = [
+    ("promethee", "PROMETHEE II"),
+    ("vikor", "VIKOR"),
+    ("topsis", "TOPSIS"),
+    ("saw", "SAW"),
+    ("wp", "WP"),
+    ("waspas", "WASPAS"),
+    ("codas", "CODAS"),
+    ("borda_consensus", "BORDA"),
+]
+
+
 def build_player_detail(player_id, position_data):
-    """Build player detail panel: radar chart + per-criterion breakdown bars.
+    """Build player detail panel: radar chart + per-criterion breakdown bars,
+    plus the player's rank under every MCDM method when a player is selected.
 
     Renders even without a selected player — falls back to position averages
     so the infographic is always visible once a position is chosen.
@@ -762,6 +747,29 @@ def build_player_detail(player_id, position_data):
             html.Span(f"{pv:.2f}", className="breakdown-val"),
         ], className="breakdown-item"))
 
+    # Rank-by-method chips — only when an actual player is selected.
+    method_rank_section = None
+    if has_player:
+        player_ranks = position_data.get("method_ranks", {}).get(str(player_id), {})
+        current = position_data.get("current_method")
+        pool_size = position_data.get("pool_size")
+        chips = []
+        for mk, label in METHOD_RANK_LABELS:
+            rank = player_ranks.get(mk)
+            if rank is None:
+                continue
+            chips.append(html.Div([
+                html.Span(label, className="method-rank-name"),
+                html.Span(f"#{rank}", className="method-rank-pos"),
+            ], className="method-rank-chip method-rank-active" if mk == current
+               else "method-rank-chip"))
+        if chips:
+            suffix = f" (of {pool_size} players)" if pool_size else ""
+            method_rank_section = html.Div([
+                html.Div(f"Rank by method{suffix}", className="method-rank-title"),
+                html.Div(chips, className="method-rank-grid"),
+            ], className="method-rank-section")
+
     hint = "Click another player to compare" if has_player else "Click a player for their profile"
     return html.Div([
         html.Div([
@@ -773,6 +781,7 @@ def build_player_detail(player_id, position_data):
                      className="detail-radar"),
             html.Div(bar_items, className="detail-breakdown"),
         ], className="detail-body"),
+        method_rank_section,
     ], className="player-detail-content")
 
 
@@ -808,7 +817,6 @@ app.layout = html.Div([
                     options=[
                         {"label": "PROMETHEE II", "value": "PROMETHEE II"},
                         {"label": "VIKOR", "value": "VIKOR"},
-                        {"label": "AHP", "value": "AHP"},
                         {"label": "TOPSIS", "value": "TOPSIS"},
                         {"label": "SAW", "value": "SAW"},
                         {"label": "WP", "value": "WP"},
@@ -1544,26 +1552,22 @@ def update_rankings(selected_pos, method, weighting, slider_values,
     except Exception as e:
         return html.Div(f"Error: {e}"), html.Div(), {}, {}, btn_text, True
 
-    # Alternate-method stability badge comparator.
-    alt_map = {
-        "promethee": "vikor",
-        "vikor": "promethee",
-        "ahp": "topsis",
-        "topsis": "ahp",
-        "saw": "wp",
-        "wp": "saw",
-        "waspas": "promethee",
-        "codas": "promethee",
-        "borda_consensus": "promethee",
-    }
+    # Per-method rank map for the player detail panel: rank every player under
+    # every supported method (same weights), so a selected player's profile can
+    # show how method-sensitive their position rank is.
     method_key = METHOD_ALIASES.get(str(method).strip().lower(), str(method).strip().lower())
-    alt_method = alt_map.get(method_key, "promethee")
-    try:
-        alt_ranked, _, _ = rank_players(players, active_config, method=alt_method,
-                                        custom_weights=custom_weights, weighting=weighting)
-        alt_ranks = {str(row["id"]): int(row["rank"]) for _, row in alt_ranked.iterrows()}
-    except Exception:
-        alt_ranks = {}
+    method_ranks = {}
+    for mk in SUPPORTED_METHODS:
+        if mk == method_key:
+            ranked_m = ranked_df
+        else:
+            try:
+                ranked_m, _, _ = rank_players(players, active_config, method=mk,
+                                              custom_weights=custom_weights, weighting=weighting)
+            except Exception:
+                continue
+        for _, row in ranked_m.iterrows():
+            method_ranks.setdefault(str(row["id"]), {})[mk] = int(row["rank"])
 
     # Budget remaining for affordable filter
     formation_def = FORMATIONS.get(formation, {})
@@ -1573,7 +1577,6 @@ def update_rankings(selected_pos, method, weighting, slider_values,
 
     table = build_table(
         ranked_df,
-        alt_ranks=alt_ranks,
         search=search or "",
         budget_filter=do_budget_filter,
         remaining=remaining,
@@ -1599,6 +1602,9 @@ def update_rankings(selected_pos, method, weighting, slider_values,
         "avg": {k: float(avg_norm[i]) for i, k in enumerate(criteria_names)},
         "criteria_labels": {k: criteria_config[k]["label"] for k in criteria_names},
         "names": {},
+        "method_ranks": method_ranks,
+        "current_method": method_key,
+        "pool_size": len(players),
     }
     for idx, (_, row) in enumerate(players.iterrows()):
         pid = str(row["id"])

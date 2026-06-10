@@ -157,8 +157,8 @@ def test_update_rankings_returns_6_for_every_slot(ctx):
 
 
 def test_update_rankings_all_methods(ctx):
-    """All nine MCDM methods drive the rankings callback without crashing."""
-    methods = ["promethee", "vikor", "ahp", "topsis", "saw",
+    """All eight MCDM methods drive the rankings callback without crashing."""
+    methods = ["promethee", "vikor", "topsis", "saw",
                "wp", "waspas", "codas", "borda_consensus"]
     for method in methods:
         for weighting in ("critic", "entropy"):
