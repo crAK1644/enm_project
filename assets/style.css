@@ -880,6 +880,13 @@ body {
     padding-top: 14px;
     border-top: 1px solid var(--surface-border);
 }
+/* Standalone actions row lives outside the dynamically-rendered panel, so it
+   needs the wrapper's horizontal padding and no panel-internal divider. */
+.opt-actions-standalone {
+    padding: 0 28px;
+    margin-top: 10px;
+    border-top: none;
+}
 .optimizer-infeasible {
     display: flex;
     align-items: center;
@@ -1385,23 +1392,51 @@ input[type="text"]:focus {
     gap: 6px;
 }
 
-/* ── Stability badge ── */
-.stability-badge {
+/* ── Rank-by-method chips (player detail) ── */
+.method-rank-section {
+    padding: 14px 18px 18px;
+    border-top: 1px solid var(--surface-border);
+}
+.method-rank-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #a0a0aa;
+    margin-bottom: 10px;
+}
+.method-rank-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.method-rank-chip {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 2px 5px;
-    border-radius: 4px;
-    min-width: 26px;
-    letter-spacing: 0.2px;
+    gap: 7px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--surface-border);
 }
-
-.stability-stable   { background: var(--success-muted);  color: var(--success); }
-.stability-ok       { background: var(--warning-muted);  color: var(--warning); }
-.stability-volatile { background: var(--danger-muted);   color: var(--danger);  }
+.method-rank-name {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: #a0a0aa;
+}
+.method-rank-pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary, #e8e8ec);
+}
+.method-rank-active {
+    border-color: var(--accent);
+    background: rgba(212, 132, 90, 0.10);
+}
+.method-rank-active .method-rank-name { color: var(--accent); }
+.method-rank-active .method-rank-pos  { color: var(--accent); }
 
 /* ── Player detail panel ── */
 .player-detail-content {

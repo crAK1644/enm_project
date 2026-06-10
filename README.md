@@ -2,14 +2,14 @@
 
 A Football-Manager-style decision-support app for evaluating Premier League players during the transfer window. Pick a formation, click a position on the pitch to see role-specific MCDM rankings, set a budget, and let the linear-programming optimizer assemble the best XI for you.
 
-Built with **Python + Dash**. Rankings flow from an MCDM engine that supports nine ranking methods, two objective weighting schemes, and a Borda consensus aggregator. Squad selection is solved as an integer linear program via PuLP/CBC.
+Built with **Python + Dash**. Rankings flow from an MCDM engine that supports eight ranking methods, two objective weighting schemes, and a Borda consensus aggregator. Squad selection is solved as an integer linear program via PuLP/CBC.
 
 ## What's in the box
 
 - **Interactive pitch** — six formations (4-3-3, 4-4-2, 3-5-2, 4-2-3-1, 3-4-3, 5-3-2). Each slot resolves to a specific role (GK/CB/LB/RB/CDM/CM/CAM/LM/RM/LW/RW/ST) with its own criteria set.
-- **Nine MCDM methods** — PROMETHEE II, VIKOR, AHP, TOPSIS, SAW, WP, WASPAS, CODAS, plus a Borda-count Consensus that aggregates them.
+- **Eight MCDM methods** — PROMETHEE II, VIKOR, TOPSIS, SAW, WP, WASPAS, CODAS, plus a Borda-count Consensus that aggregates them.
 - **Two objective weighting schemes** — CRITIC (variance × dis-correlation) and Shannon Entropy. Sliders let you override either.
-- **Stability badge** — every player's rank under the alternate method, so you can see who's robust vs. method-sensitive.
+- **Rank by method** — a selected player's profile shows their rank under every MCDM method, so you can see who's robust vs. method-sensitive.
 - **LP-based squad builder** — set a `Min`/`Max` spend window, click **Optimize XI** for a from-scratch best XI, or **Fill Empty** to keep your manual picks and solve the rest. Preview before applying.
 - **Transfermarkt market values** — committed in `data/market_values.csv`; refresh per transfer window with the scraper.
 
@@ -67,13 +67,12 @@ A pinned `.venv/` is checked in; activate it if you want the exact interpreter t
 |---|---|---|
 | PROMETHEE II | Pairwise outranking flows | Net Φ (higher = better) |
 | VIKOR | Compromise ranking | `1 − Q` (higher = better; inverted from raw Q) |
-| AHP | Priority vector via pairwise comparison | Composite priority |
 | TOPSIS | Distance to ideal vs. anti-ideal | Closeness coefficient ∈ [0, 1] |
 | SAW | Weighted sum after normalisation | Linear additive |
 | WP | Weighted product | Multiplicative (penalises weak-on-any) |
 | WASPAS | λ-blend of SAW + WP (λ = 0.5) | Hybrid additive/multiplicative |
 | CODAS | Euclidean distance from anti-ideal, taxicab tiebreak | Higher = farther from worst |
-| Borda Consensus | Ordinal aggregation across all six base methods | Σ (n − rank + 1) |
+| Borda Consensus | Ordinal aggregation across all seven base methods | Σ (n − rank + 1) |
 
 ## Weighting schemes
 

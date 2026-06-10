@@ -231,7 +231,16 @@ def build_player_database(project_dir, min_minutes=450):
             right_on="player_id",
             how="left",
         )
-        merged["market_value_eur_m"] = merged["market_value_eur_m"].fillna(0)
+        # A failed Transfermarkt match means the player is not on any of the 20
+        # current Premier League squad pages the scraper iterates — i.e. they
+        # have left the league (transfer, loan return, etc.). Drop them instead
+        # of surfacing a €0 value that would also read as "free" to the optimizer.
+        left_league = merged["market_value_eur_m"].isna()
+        if left_league.any():
+            dropped = sorted(merged.loc[left_league, "web_name"].astype(str))
+            print(f"  Dropping {int(left_league.sum())} players no longer on a PL squad: "
+                  f"{', '.join(dropped)}")
+            merged = merged[~left_league].copy()
     else:
         # Use FPL cost as fallback (in £ tenths of millions, e.g. 146 = £14.6m)
         merged["market_value_eur_m"] = merged["now_cost"] / 10.0

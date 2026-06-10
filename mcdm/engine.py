@@ -7,36 +7,6 @@ import numpy as np
 import pandas as pd
 
 
-def _ahp(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> pd.Series:
-    X = df.values
-    benefit_mask = criteria_types == 1
-    cost_mask = criteria_types == -1
-    norm = np.empty_like(X, dtype=float)
-    
-    ben_sum = X[:, benefit_mask].sum(axis=0)
-    norm[:, benefit_mask] = X[:, benefit_mask] / np.maximum(1e-10, ben_sum)
-    
-    X_cost = np.where(X[:, cost_mask] == 0, 1e-10, X[:, cost_mask])
-    inv_cost = 1.0 / X_cost
-    norm[:, cost_mask] = inv_cost / np.maximum(1e-10, inv_cost.sum(axis=0))
-    
-    scores = norm @ weights
-    return pd.Series(scores, index=df.index)
-
-def _topsis(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> pd.Series:
-    matrix = df.values
-    norm_matrix = matrix / np.maximum(1e-10, np.sqrt((matrix**2).sum(axis=0)))
-    weighted_matrix = norm_matrix * weights
-    
-    ideal_best = np.where(criteria_types == 1, np.max(weighted_matrix, axis=0), np.min(weighted_matrix, axis=0))
-    ideal_worst = np.where(criteria_types == 1, np.min(weighted_matrix, axis=0), np.max(weighted_matrix, axis=0))
-    
-    dist_best = np.sqrt(np.sum((weighted_matrix - ideal_best)**2, axis=1))
-    dist_worst = np.sqrt(np.sum((weighted_matrix - ideal_worst)**2, axis=1))
-    
-    scores = dist_worst / np.maximum(1e-10, dist_best + dist_worst)
-    return pd.Series(scores, index=df.index)
-
 def _saw(df: pd.DataFrame, weights: np.ndarray, criteria_types: np.ndarray) -> pd.Series:
     matrix = df.values
     norm_matrix = np.where(criteria_types == 1, 
@@ -66,7 +36,6 @@ def calculate_mcdm(method_name: str, matrix: pd.DataFrame, weights: np.ndarray, 
     methods = {
         'PROMETHEE II': lambda: promethee_ii(matrix.values, weights, criteria_types),
         'VIKOR': lambda: vikor(matrix.values, weights, criteria_types),
-        'AHP': lambda: _ahp(matrix, weights, criteria_types),
         'TOPSIS': lambda: topsis(matrix.values, weights, criteria_types),
         'SAW': lambda: _saw(matrix, weights, criteria_types),
         'WP': lambda: _wp(matrix, weights, criteria_types),
@@ -144,27 +113,6 @@ def critic_weights(matrix, types):
     
     return weights
 
-
-def shannon_entropy_weights(df, criteria_types, epsilon=1e-12):
-    X = df.to_numpy(dtype=float) if isinstance(df, pd.DataFrame) else np.asarray(df, dtype=float)
-    t = np.asarray(criteria_types, dtype=float)
-    benefit_mask = t == 1
-    cost_mask = t == -1
-    norm = np.empty_like(X, dtype=float)
-    
-    ben_sum = X[:, benefit_mask].sum(axis=0)
-    norm[:, benefit_mask] = X[:, benefit_mask] / np.maximum(epsilon, ben_sum)
-    
-    inv_cost = 1.0 / (X[:, cost_mask] + epsilon)
-    norm[:, cost_mask] = inv_cost / np.maximum(epsilon, inv_cost.sum(axis=0))
-    
-    P = norm + epsilon
-    m = X.shape[0]
-    k = 1.0 / np.log(m) if m > 1 else 1.0
-    entropy = -k * np.sum(P * np.log(P), axis=0)
-    diversification = 1.0 - entropy
-    weights = diversification / np.maximum(epsilon, diversification.sum())
-    return weights
 
 def hybridize_weights(critic_w: np.ndarray, shannon_w: np.ndarray, alpha: float = 0.5) -> np.ndarray:
     alpha = max(0.0, min(1.0, alpha))
@@ -330,7 +278,7 @@ def borda_consensus(rank_df):
 
 
 def _borda_consensus_from_methods(matrix, weights, criteria_types):
-    base_methods = ['PROMETHEE II', 'VIKOR', 'AHP', 'TOPSIS', 'SAW', 'WP', 'WASPAS', 'CODAS']
+    base_methods = ['PROMETHEE II', 'VIKOR', 'TOPSIS', 'SAW', 'WP', 'WASPAS', 'CODAS']
     rank_matrix = pd.DataFrame(index=matrix.index)
     for m in base_methods:
         result = calculate_mcdm(m, matrix, weights, criteria_types)
@@ -503,7 +451,7 @@ def codas(matrix, weights, types, tau=0.02):
 # ─────────────────────────────────────────────────────────────
 
 SUPPORTED_METHODS = (
-    "promethee", "vikor", "ahp", "topsis", "saw", "wp", "waspas", "codas", "borda_consensus"
+    "promethee", "vikor", "topsis", "saw", "wp", "waspas", "codas", "borda_consensus"
 )
 SUPPORTED_WEIGHTINGS = ("critic", "entropy", "hybrid")
 
@@ -511,7 +459,6 @@ METHOD_ALIASES = {
     "promethee ii": "promethee",
     "promethee": "promethee",
     "vikor": "vikor",
-    "ahp": "ahp",
     "topsis": "topsis",
     "saw": "saw",
     "wp": "wp",
@@ -597,11 +544,6 @@ def rank_players(player_df, criteria_config, method="promethee", custom_weights=
     elif method_key == "codas":
         scores, ranks = codas(matrix, weights, types)
         result["score"] = scores
-    elif method_key == "ahp":
-        scores = _ahp(pd.DataFrame(matrix, index=player_df.index, columns=columns), weights, types)
-        result["score"] = scores.values
-        ranks = np.empty(len(scores), dtype=int)
-        ranks[np.argsort(-scores.values)] = np.arange(1, len(scores) + 1)
     elif method_key == "saw":
         scores = _saw(pd.DataFrame(matrix, index=player_df.index, columns=columns), weights, types)
         result["score"] = scores.values

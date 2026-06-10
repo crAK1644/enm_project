@@ -17,7 +17,7 @@ def run_tests():
     forwards = get_position_players(db, "Forward")
     criteria_config = POSITION_CRITERIA["Forward"]
     
-    methods = ["PROMETHEE II", "VIKOR", "AHP", "TOPSIS", "SAW", "WP"]
+    methods = ["PROMETHEE II", "VIKOR", "TOPSIS", "SAW", "WP"]
     
     for method in methods:
         print(f"\n--- Testing {method} ---")
